@@ -6,6 +6,10 @@ source = "."
 
 license = "Apache-2.0"
 
+readme = "README.mbt.md"
+
+repository = "https://github.com/ppyj663/moonattest"
+
 keywords = [ "security", "slsa", "dsse", "in-toto", "provenance" ]
 
 preferred_target = "js"
