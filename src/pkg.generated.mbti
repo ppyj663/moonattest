@@ -1,0 +1,102 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "ppyj663/moonattest/src"
+
+// Values
+pub fn pae(String, String) -> String
+
+pub fn parse_envelope(StringView) -> Result[Envelope, DsseError]
+
+pub fn parse_slsa_provenance(Statement) -> Result[Provenance, SlsaError]
+
+pub fn parse_statement(StringView) -> Result[Statement, IntotoError]
+
+pub fn sha256_hex(Bytes) -> String
+
+pub fn verify_envelope(Envelope, Policy, Map[String, String]) -> Report
+
+// Errors
+pub suberror DsseError {
+  InvalidJson
+  NotObject
+  MissingField(String)
+  InvalidField(String)
+  EmptySignatures
+  InvalidBase64(String)
+}
+
+pub suberror IntotoError {
+  IntotoInvalidJson
+  IntotoNotObject
+  IntotoWrongType
+  WrongPredicate
+  IntotoMissingField(String)
+  IntotoInvalidField(String)
+  EmptySubjects
+  MissingDigest(String)
+}
+
+pub suberror SlsaError {
+  SlsaNotObject
+  SlsaMissingField(String)
+  SlsaInvalidField(String)
+}
+
+// Types and methods
+pub(all) struct Envelope {
+  payload_type : String
+  payload : String
+  signatures : Array[Signature]
+}
+pub fn Envelope::new(String, String, Array[Signature]) -> Self
+
+pub(all) struct Finding {
+  code : String
+  message : String
+}
+pub fn Finding::new(String, String) -> Self
+
+pub(all) struct Policy {
+  digest_algorithm : String
+  expected_digest : String
+  source_uri : String
+  builder_id : String
+  trusted_key_ids : Array[String]
+}
+pub fn Policy::new(String, String, String, String, Array[String]) -> Self
+
+pub(all) struct Provenance {
+  builder_id : String
+  source_uri : String
+}
+pub fn Provenance::new(String, String) -> Self
+
+pub(all) struct Report {
+  ok : Bool
+  findings : Array[Finding]
+}
+pub fn Report::new(Bool, Array[Finding]) -> Self
+
+pub(all) struct Signature {
+  key_id : String
+  sig : String
+}
+pub fn Signature::new(String, String) -> Self
+
+pub(all) struct Statement {
+  statement_type : String
+  subjects : Array[Subject]
+  predicate_type : String
+  predicate : Json
+}
+pub fn Statement::new(String, Array[Subject], String, Json) -> Self
+
+pub(all) struct Subject {
+  name : String
+  digest_algorithm : String
+  digest : String
+}
+pub fn Subject::new(String, String, String) -> Self
+
+// Type aliases
+
+// Traits
