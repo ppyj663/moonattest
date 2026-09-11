@@ -1,0 +1,7 @@
+{
+  "payloadType": "application/vnd.in-toto+json",
+  "payload": "e30=",
+  "signatures": [
+    { "keyid": "release-key", "sig": "c2ln" }
+  ]
+}
