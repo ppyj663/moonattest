@@ -21,7 +21,7 @@ fn usage() -> Unit {
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
   println(
-    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--json]",
+    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--subject <name>] [--json]",
   )
 }
 
@@ -174,6 +174,10 @@ fn run_verify(args : Array[String], index : Int) -> Int {
   let policy = @attest.Policy::new("sha256", digest, source, builder, [
     public_key.0,
   ])
+  let policy = match option_value(args, index + 2, "--subject") {
+    Some(subject) => policy.with_subject(subject)
+    None => policy
+  }
   let report = @attest.verify_envelope(envelope, policy, keys)
   let json = has_flag(args, index + 2, "--json")
   if json {

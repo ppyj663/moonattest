@@ -61,8 +61,10 @@ pub(all) struct Policy {
   source_uri : String
   builder_id : String
   trusted_key_ids : Array[String]
+  subject_name : String
 }
 pub fn Policy::new(String, String, String, String, Array[String]) -> Self
+pub fn Policy::with_subject(Self, String) -> Self
 
 pub(all) struct Provenance {
   builder_id : String

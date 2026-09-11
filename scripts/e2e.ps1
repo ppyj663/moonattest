@@ -33,6 +33,14 @@ try {
   Assert-Contains $jsonVerify '"ok":true' "JSON verify output missing ok=true"
   Assert-Contains $jsonVerify '"findings":[]' "JSON verify output missing empty findings"
 
+  $namedSubject = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject artifact.bin | Out-String
+  if ($LASTEXITCODE -ne 0) { throw "named subject verify should exit 0`n$namedSubject" }
+  Assert-Contains $namedSubject "VERIFIED" "named subject verify output missing VERIFIED"
+
+  $missingSubject = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject missing.bin | Out-String
+  if ($LASTEXITCODE -ne 1) { throw "missing subject should exit 1" }
+  Assert-Contains $missingSubject "SUBJECT_NOT_FOUND" "missing subject was not reported"
+
   $sourceMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/other/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "source mismatch should exit 1" }
   Assert-Contains $sourceMismatch "SOURCE_MISMATCH" "source mismatch was not reported"
@@ -55,7 +63,7 @@ try {
   $invalid = & $moon run cmd/moonattest inspect fixtures/dsse/invalid-base64.json | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid base64 inspect should exit 2" }
   Assert-Contains $invalid "invalid DSSE envelope" "invalid base64 was not reported"
-  Write-Output "E2E PASS: inspect, valid verify, four policy/tamper failures"
+  Write-Output "E2E PASS: inspect, valid verify, policy/tamper failures"
 } finally {
   Remove-Item -LiteralPath $valid, $tampered -Force -ErrorAction SilentlyContinue
 }

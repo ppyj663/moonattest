@@ -56,11 +56,19 @@ let report = @moonattest.verify_envelope(
   policy,
   trusted_keys,
 )
+
+///|
+/// Select a named subject when a Statement contains multiple artifacts.
+let release_policy = policy.with_subject("release.tar")
 ```
 
 All parsers return `Result` values, accept unknown extension fields, and reject
 missing or malformed required fields. `verify_envelope` returns stable
 diagnostic codes and never performs network access.
+
+Policies target the first subject by default. Use `Policy.with_subject(name)`
+when a Statement contains multiple subjects; a missing name produces the
+`SUBJECT_NOT_FOUND` diagnostic.
 
 ## Supported matrix
 
@@ -86,7 +94,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 17 library tests across JS and Wasm-GC plus a
+Version 0.1.0 provides 19 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 

@@ -83,6 +83,7 @@ pub(all) struct Policy {
   source_uri : String
   builder_id : String
   trusted_key_ids : Array[String]
+  subject_name : String
 }
 
 ///|
@@ -99,6 +100,21 @@ pub fn Policy::new(
     source_uri,
     builder_id,
     trusted_key_ids,
+    subject_name: "",
+  }
+}
+
+///|
+/// Return a copy of this policy that targets one named in-toto subject.
+/// An empty name preserves the default behavior of checking the first subject.
+pub fn Policy::with_subject(self : Policy, subject_name : String) -> Policy {
+  {
+    digest_algorithm: self.digest_algorithm,
+    expected_digest: self.expected_digest,
+    source_uri: self.source_uri,
+    builder_id: self.builder_id,
+    trusted_key_ids: self.trusted_key_ids,
+    subject_name,
   }
 }
 

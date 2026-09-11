@@ -8,13 +8,34 @@ fn add_finding(
 }
 
 ///|
+fn select_subject(statement : Statement, requested_name : String) -> Subject? {
+  if requested_name == "" {
+    return Some(statement.subjects[0])
+  }
+  for subject in statement.subjects {
+    if subject.name == requested_name {
+      return Some(subject)
+    }
+  }
+  None
+}
+
+///|
 fn check_policy(
   statement : Statement,
   provenance : Provenance,
   policy : Policy,
   findings : Array[Finding],
 ) -> Unit {
-  let subject = statement.subjects[0]
+  let subject = match select_subject(statement, policy.subject_name) {
+    Some(subject) => subject
+    None => {
+      add_finding(
+        findings, "SUBJECT_NOT_FOUND", "policy subject name does not exist in statement",
+      )
+      return
+    }
+  }
   if policy.digest_algorithm != "" &&
     subject.digest_algorithm != policy.digest_algorithm {
     add_finding(
