@@ -21,7 +21,7 @@ fn usage() -> Unit {
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
   println(
-    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex>",
+    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--json]",
   )
 }
 
@@ -44,6 +44,40 @@ fn option_value(args : Array[String], start : Int, name : String) -> String? {
     }
   }
   None
+}
+
+///|
+fn has_flag(args : Array[String], start : Int, name : String) -> Bool {
+  for i = start; i < args.length(); i = i + 1 {
+    if args[i] == name {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn report_json(report : @attest.Report) -> String {
+  let output = StringBuilder()
+  output.write_string(
+    if report.ok {
+      "{\"ok\":true,\"findings\":["
+    } else {
+      "{\"ok\":false,\"findings\":["
+    },
+  )
+  for i, finding in report.findings {
+    if i > 0 {
+      output.write_string(",")
+    }
+    output.write_string("{\"code\":")
+    output.write_string(finding.code.escape())
+    output.write_string(",\"message\":")
+    output.write_string(finding.message.escape())
+    output.write_string("}")
+  }
+  output.write_string("]}")
+  output.to_string()
 }
 
 ///|
@@ -141,6 +175,11 @@ fn run_verify(args : Array[String], index : Int) -> Int {
     public_key.0,
   ])
   let report = @attest.verify_envelope(envelope, policy, keys)
+  let json = has_flag(args, index + 2, "--json")
+  if json {
+    println(report_json(report))
+    return if report.ok { 0 } else { 1 }
+  }
   for finding in report.findings {
     println(finding.code + ": " + finding.message)
   }

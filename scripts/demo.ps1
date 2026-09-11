@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$moon = "C:\Users\3i\.moon\bin\moon.exe"
+$moon = if (Get-Command moon -ErrorAction SilentlyContinue) { "moon" } else { "C:\Users\3i\.moon\bin\moon.exe" }
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $valid = Join-Path $env:TEMP ("moonattest-demo-" + [Guid]::NewGuid().ToString("N") + ".json")

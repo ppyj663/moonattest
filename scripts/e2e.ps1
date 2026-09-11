@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$moon = "C:\Users\3i\.moon\bin\moon.exe"
+$moon = if (Get-Command moon -ErrorAction SilentlyContinue) { "moon" } else { "C:\Users\3i\.moon\bin\moon.exe" }
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
@@ -27,6 +27,11 @@ try {
   $verified = & $moon @verifyArgs | Out-String
   if ($LASTEXITCODE -ne 0) { throw "valid verify should exit 0`n$verified" }
   Assert-Contains $verified "VERIFIED" "valid verify output missing VERIFIED"
+
+  $jsonVerify = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --json | Out-String
+  if ($LASTEXITCODE -ne 0) { throw "JSON verify should exit 0`n$jsonVerify" }
+  Assert-Contains $jsonVerify '"ok":true' "JSON verify output missing ok=true"
+  Assert-Contains $jsonVerify '"findings":[]' "JSON verify output missing empty findings"
 
   $sourceMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/other/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "source mismatch should exit 1" }
