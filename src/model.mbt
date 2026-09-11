@@ -84,6 +84,7 @@ pub(all) struct Policy {
   builder_id : String
   trusted_key_ids : Array[String]
   subject_name : String
+  min_valid_signatures : Int
 }
 
 ///|
@@ -101,6 +102,7 @@ pub fn Policy::new(
     builder_id,
     trusted_key_ids,
     subject_name: "",
+    min_valid_signatures: 1,
   }
 }
 
@@ -115,6 +117,25 @@ pub fn Policy::with_subject(self : Policy, subject_name : String) -> Policy {
     builder_id: self.builder_id,
     trusted_key_ids: self.trusted_key_ids,
     subject_name,
+    min_valid_signatures: self.min_valid_signatures,
+  }
+}
+
+///|
+/// Return a copy of this policy requiring signatures from at least
+/// `minimum` distinct trusted key IDs. The default is one.
+pub fn Policy::with_min_valid_signatures(
+  self : Policy,
+  minimum : Int,
+) -> Policy {
+  {
+    digest_algorithm: self.digest_algorithm,
+    expected_digest: self.expected_digest,
+    source_uri: self.source_uri,
+    builder_id: self.builder_id,
+    trusted_key_ids: self.trusted_key_ids,
+    subject_name: self.subject_name,
+    min_valid_signatures: minimum,
   }
 }
 

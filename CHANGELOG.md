@@ -7,5 +7,6 @@
 - Added SHA-256 and Ed25519 verification against explicit trust policy.
 - Added optional subject-name selection for Statements containing multiple artifacts.
 - Added strict in-toto DSSE payload-type validation.
+- Added configurable minimum trusted-signature thresholds with duplicate-key protection.
 - Added JS CLI commands `inspect` and `verify` with exit codes 0/1/2.
 - Added disposable signed demo and tamper-focused end-to-end regression.

@@ -21,7 +21,7 @@ fn usage() -> Unit {
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
   println(
-    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--subject <name>] [--json]",
+    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--subject <name>] [--min-signatures <n>] [--json]",
   )
 }
 
@@ -125,6 +125,14 @@ fn parse_public_key(value : String) -> (String, String)? {
 }
 
 ///|
+fn parse_int(value : String) -> Int? {
+  let parsed = @string.parse_int(value.to_string_view()) catch {
+    _ => return None
+  }
+  Some(parsed)
+}
+
+///|
 fn run_verify(args : Array[String], index : Int) -> Int {
   guard index + 1 < args.length() else {
     usage()
@@ -176,6 +184,17 @@ fn run_verify(args : Array[String], index : Int) -> Int {
   ])
   let policy = match option_value(args, index + 2, "--subject") {
     Some(subject) => policy.with_subject(subject)
+    None => policy
+  }
+  let policy = match option_value(args, index + 2, "--min-signatures") {
+    Some(value) =>
+      match parse_int(value) {
+        Some(minimum) => policy.with_min_valid_signatures(minimum)
+        None => {
+          println("error: --min-signatures must be an integer")
+          return 2
+        }
+      }
     None => policy
   }
   let report = @attest.verify_envelope(envelope, policy, keys)

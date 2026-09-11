@@ -57,7 +57,7 @@ pub fn verify_envelope(
     }
   }
   check_policy(statement, provenance, policy, findings)
-  let mut valid_trusted_signatures = 0
+  let valid_trusted_key_ids : Array[String] = []
   for signature in envelope.signatures {
     if !policy.trusted_key_ids.contains(signature.key_id) {
       add_finding(
@@ -75,13 +75,24 @@ pub fn verify_envelope(
       }
     }
     if verify_signature(envelope, payload, signature, public_key_hex) {
-      valid_trusted_signatures += 1
+      if !valid_trusted_key_ids.contains(signature.key_id) {
+        valid_trusted_key_ids.push(signature.key_id)
+      }
     } else {
       add_finding(findings, "SIGNATURE_INVALID", "signature did not verify")
     }
   }
-  if valid_trusted_signatures == 0 {
+  if policy.min_valid_signatures < 1 {
+    add_finding(
+      findings, "INVALID_SIGNATURE_THRESHOLD", "policy minimum signatures must be at least one",
+    )
+  }
+  if valid_trusted_key_ids.is_empty() {
     add_finding(findings, "NO_VALID_SIGNATURE", "no trusted signature verified")
+  } else if valid_trusted_key_ids.length() < policy.min_valid_signatures {
+    add_finding(
+      findings, "SIGNATURE_THRESHOLD_UNMET", "verified trusted signatures are below policy minimum",
+    )
   }
   Report::new(findings.is_empty(), findings)
 }

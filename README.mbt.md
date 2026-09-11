@@ -74,6 +74,11 @@ Policies target the first subject by default. Use `Policy.with_subject(name)`
 when a Statement contains multiple subjects; a missing name produces the
 `SUBJECT_NOT_FOUND` diagnostic.
 
+Policies require one valid trusted signature by default. Use
+`Policy.with_min_valid_signatures(n)` to require signatures from at least `n`
+distinct trusted key IDs; duplicate signatures from one key do not increase the
+count.
+
 ## Supported matrix
 
 | Component | JS | Wasm-GC | Native |

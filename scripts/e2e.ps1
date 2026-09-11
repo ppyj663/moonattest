@@ -41,6 +41,14 @@ try {
   if ($LASTEXITCODE -ne 1) { throw "missing subject should exit 1" }
   Assert-Contains $missingSubject "SUBJECT_NOT_FOUND" "missing subject was not reported"
 
+  $thresholdMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures 2 | Out-String
+  if ($LASTEXITCODE -ne 1) { throw "signature threshold mismatch should exit 1" }
+  Assert-Contains $thresholdMismatch "SIGNATURE_THRESHOLD_UNMET" "signature threshold mismatch was not reported"
+
+  $invalidThreshold = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures nope | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "invalid signature threshold should exit 2" }
+  Assert-Contains $invalidThreshold "--min-signatures must be an integer" "invalid signature threshold was not reported"
+
   $wrongType = Join-Path $env:TEMP ("moonattest-wrong-type-" + [Guid]::NewGuid().ToString("N") + ".json")
   $envelope = Get-Content -Raw -LiteralPath $valid | ConvertFrom-Json
   $envelope.payloadType = "application/octet-stream"

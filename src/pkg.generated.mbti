@@ -62,8 +62,10 @@ pub(all) struct Policy {
   builder_id : String
   trusted_key_ids : Array[String]
   subject_name : String
+  min_valid_signatures : Int
 }
 pub fn Policy::new(String, String, String, String, Array[String]) -> Self
+pub fn Policy::with_min_valid_signatures(Self, Int) -> Self
 pub fn Policy::with_subject(Self, String) -> Self
 
 pub(all) struct Provenance {

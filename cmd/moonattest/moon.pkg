@@ -1,6 +1,7 @@
 import {
   "ppyj663/moonattest/src" @attest,
   "moonbitlang/core/env",
+  "moonbitlang/core/string",
 }
 
 pkgtype(kind: "executable")
