@@ -18,7 +18,8 @@ pwsh -File scripts/e2e.ps1
 The library package supports JavaScript and Wasm-GC. The file-oriented CLI uses
 the JavaScript target because its adapter reads local files through Node.js.
 
-The end-to-end script creates a temporary signed envelope, verifies the valid
-case, and checks deterministic rejection for source, builder, digest, signature,
-and malformed-Base64 changes. Temporary files are deleted when the script
-finishes.
+The end-to-end script creates temporary signed envelopes, verifies both the
+single-signature and repeated-`--public-key` multi-signature cases, and checks
+deterministic rejection for duplicate key IDs, source, builder, digest,
+signature, and malformed-Base64 changes. Temporary files are deleted when the
+script finishes.

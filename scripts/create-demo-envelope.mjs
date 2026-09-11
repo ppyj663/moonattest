@@ -1,7 +1,9 @@
 import { createPrivateKey, sign } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
-const output = process.argv[2];
+const args = process.argv.slice(2);
+const output = args.find((arg) => !arg.startsWith("--"));
+const twoSignatures = args.includes("--two-signatures");
 const payloadType = "application/vnd.in-toto+json";
 const statement = {
   _type: "https://in-toto.io/Statement/v1",
@@ -31,6 +33,15 @@ const privateKey = createPrivateKey({
   format: "der",
   type: "pkcs8",
 });
+const secondSeed = Buffer.from(
+  "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+  "hex",
+);
+const secondPrivateKey = createPrivateKey({
+  key: Buffer.concat([pkcs8Prefix, secondSeed]),
+  format: "der",
+  type: "pkcs8",
+});
 const envelope = {
   payloadType,
   payload: payload.toString("base64"),
@@ -38,6 +49,12 @@ const envelope = {
     { keyid: "release-key", sig: sign(null, pae, privateKey).toString("base64") },
   ],
 };
+if (twoSignatures) {
+  envelope.signatures.push({
+    keyid: "backup-key",
+    sig: sign(null, pae, secondPrivateKey).toString("base64"),
+  });
+}
 const text = JSON.stringify(envelope, null, 2) + "\n";
 if (output) {
   writeFileSync(output, text, "utf8");

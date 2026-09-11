@@ -13,10 +13,14 @@ Assert-Contains $inspect "status: parsed" "inspect output missing parsed status"
 
 $valid = Join-Path $env:TEMP ("moonattest-valid-" + [Guid]::NewGuid().ToString("N") + ".json")
 $tampered = Join-Path $env:TEMP ("moonattest-tampered-" + [Guid]::NewGuid().ToString("N") + ".json")
+$multi = Join-Path $env:TEMP ("moonattest-multi-" + [Guid]::NewGuid().ToString("N") + ".json")
 try {
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $valid
   if ($LASTEXITCODE -ne 0) { throw "demo envelope generation failed" }
+  & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $multi --two-signatures
+  if ($LASTEXITCODE -ne 0) { throw "multi-signature demo envelope generation failed" }
   $publicKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+  $backupPublicKey = "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
   $verifyArgs = @(
     "run", "cmd/moonattest", "verify", $valid,
     "--digest", "abc123",
@@ -27,6 +31,23 @@ try {
   $verified = & $moon @verifyArgs | Out-String
   if ($LASTEXITCODE -ne 0) { throw "valid verify should exit 0`n$verified" }
   Assert-Contains $verified "VERIFIED" "valid verify output missing VERIFIED"
+
+  $multiVerifyArgs = @(
+    "run", "cmd/moonattest", "verify", $multi,
+    "--digest", "abc123",
+    "--source", "https://github.com/example/project",
+    "--builder", "https://builder.example/id",
+    "--public-key", "release-key=$publicKey",
+    "--public-key", "backup-key=$backupPublicKey",
+    "--min-signatures", "2"
+  )
+  $multiVerified = & $moon @multiVerifyArgs | Out-String
+  if ($LASTEXITCODE -ne 0) { throw "multi-signature verify should exit 0`n$multiVerified" }
+  Assert-Contains $multiVerified "VERIFIED" "multi-signature verify output missing VERIFIED"
+
+  $duplicateKey = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "duplicate CLI key IDs should exit 2" }
+  Assert-Contains $duplicateKey "key IDs must be unique" "duplicate CLI key IDs were not rejected"
 
   $jsonVerify = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --json | Out-String
   if ($LASTEXITCODE -ne 0) { throw "JSON verify should exit 0`n$jsonVerify" }
@@ -83,7 +104,7 @@ try {
   $invalid = & $moon run cmd/moonattest inspect fixtures/dsse/invalid-base64.json | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid base64 inspect should exit 2" }
   Assert-Contains $invalid "invalid DSSE envelope" "invalid base64 was not reported"
-  Write-Output "E2E PASS: inspect, valid verify, policy/tamper failures"
+  Write-Output "E2E PASS: inspect, single/multi-signature verify, policy/tamper failures"
 } finally {
-  Remove-Item -LiteralPath $valid, $tampered -Force -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $valid, $tampered, $multi -Force -ErrorAction SilentlyContinue
 }

@@ -9,5 +9,6 @@
 - Added ambiguity detection for duplicate subject names.
 - Added strict in-toto DSSE payload-type validation.
 - Added configurable minimum trusted-signature thresholds with duplicate-key protection.
+- Added repeatable CLI `--public-key` options for multi-signature verification.
 - Added JS CLI commands `inspect` and `verify` with exit codes 0/1/2.
 - Added disposable signed demo and tamper-focused end-to-end regression.

@@ -31,6 +31,19 @@ Run the complete disposable demo:
 pwsh -File scripts/demo.ps1
 ```
 
+For a policy that requires signatures from two different trusted keys, repeat
+`--public-key` and set the threshold explicitly:
+
+```powershell
+moon run cmd/moonattest verify envelope.json `
+  --digest abc123 `
+  --source https://github.com/example/project `
+  --builder https://builder.example/id `
+  --public-key release-key=<release-public-key-hex> `
+  --public-key backup-key=<backup-public-key-hex> `
+  --min-signatures 2
+```
+
 ## Library API
 
 The library package is `ppyj663/moonattest/src`:
@@ -104,7 +117,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 19 library tests across JS and Wasm-GC plus a
+Version 0.1.0 provides 24 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 

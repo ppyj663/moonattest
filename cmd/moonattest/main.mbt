@@ -21,7 +21,7 @@ fn usage() -> Unit {
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
   println(
-    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex> [--subject <name>] [--min-signatures <n>] [--json]",
+    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex>... [--subject <name>] [--min-signatures <n>] [--json]",
   )
 }
 
@@ -125,6 +125,35 @@ fn parse_public_key(value : String) -> (String, String)? {
 }
 
 ///|
+fn parse_public_keys(
+  args : Array[String],
+  start : Int,
+) -> (Array[(String, String)], String?) {
+  let pairs : Array[(String, String)] = []
+  for i = start; i < args.length(); i = i + 1 {
+    if args[i] == "--public-key" {
+      if i + 1 >= args.length() {
+        return (pairs, Some("--public-key requires keyid=hex"))
+      }
+      let pair = match parse_public_key(args[i + 1]) {
+        Some(value) => value
+        None => return (pairs, Some("--public-key must be keyid=hex"))
+      }
+      if pair.0.is_empty() {
+        return (pairs, Some("--public-key key ID must not be empty"))
+      }
+      for existing in pairs {
+        if existing.0 == pair.0 {
+          return (pairs, Some("--public-key key IDs must be unique"))
+        }
+      }
+      pairs.push(pair)
+    }
+  }
+  (pairs, None)
+}
+
+///|
 fn parse_int(value : String) -> Int? {
   let parsed = @string.parse_int(value.to_string_view()) catch {
     _ => return None
@@ -160,28 +189,30 @@ fn run_verify(args : Array[String], index : Int) -> Int {
       return 2
     }
   }
-  let public_key = match option_value(args, index + 2, "--public-key") {
-    Some(value) =>
-      match parse_public_key(value) {
-        Some(pair) => pair
-        None => {
-          println("error: --public-key must be keyid=hex")
-          return 2
-        }
-      }
-    None => {
-      println("error: --public-key is required")
+  let (public_keys, public_key_error) = parse_public_keys(args, index + 2)
+  match public_key_error {
+    Some(message) => {
+      println("error: " + message)
       return 2
     }
+    None => ()
+  }
+  if public_keys.is_empty() {
+    println("error: --public-key is required")
+    return 2
   }
   let envelope = match read_envelope(path) {
     Some(value) => value
     None => return 2
   }
-  let keys = Map([public_key])
-  let policy = @attest.Policy::new("sha256", digest, source, builder, [
-    public_key.0,
-  ])
+  let trusted_key_ids : Array[String] = []
+  for pair in public_keys {
+    trusted_key_ids.push(pair.0)
+  }
+  let keys = Map(public_keys)
+  let policy = @attest.Policy::new(
+    "sha256", digest, source, builder, trusted_key_ids,
+  )
   let policy = match option_value(args, index + 2, "--subject") {
     Some(subject) => policy.with_subject(subject)
     None => policy
