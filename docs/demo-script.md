@@ -1,12 +1,15 @@
-# Five-minute demo script
+# Local demonstration
 
-1. Run `pwsh -File scripts/demo.ps1`.
-2. Point out `payloadType` and the one DSSE signature from `inspect`.
-3. Point out `VERIFIED` and exit code 0 for the signed envelope.
-4. Run `pwsh -File scripts/e2e.ps1` to show the four policy/tamper rejections.
-5. Explain that the verifier did not contact a registry or key server; the
-   public key and policy were supplied explicitly.
+Run `pwsh -File scripts/demo.ps1` to generate a disposable signed envelope,
+inspect its DSSE metadata, and verify it against an explicit local policy.
+
+Run `pwsh -File scripts/e2e.ps1` to exercise valid verification, policy
+mismatches, signature tampering, and malformed Base64. The script asserts the
+CLI exit codes and deletes temporary files when it finishes.
+
+The verifier does not contact a registry or key server; the public key and
+policy are supplied explicitly.
 
 The demo seed is an RFC 8032 test seed and is used only to create a disposable
-temporary file. It is never committed or accepted by the verifier as a trust
-source.
+temporary file. It is never placed in the repository or accepted by the
+verifier as a trust source.

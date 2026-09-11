@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0-review - 2026-09-11
+## 0.1.0 - 2026-09-11
 
 - Added typed DSSE envelope parsing and exact UTF-8 PAE construction.
 - Added in-toto Statement v1 and SLSA Provenance v1 parsing.

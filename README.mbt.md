@@ -5,8 +5,8 @@ It parses a DSSE v1 envelope, checks an in-toto Statement v1 carrying SLSA
 Provenance v1, verifies Ed25519 signatures, and applies an explicit trust policy
 for artifact digest, source repository, builder identity, and trusted key IDs.
 
-The project is designed for the MoonBit Hackathon 2026 cloud-native/edge track:
-small, reusable security infrastructure that works without a network call.
+The project targets cloud-native and edge workloads that need a small,
+reusable security primitive without a network call.
 
 ## Quick start
 
@@ -66,8 +66,8 @@ diagnostic codes and never performs network access.
 
 | Component | JS | Wasm-GC | Native |
 | --- | --- | --- | --- |
-| Parsing and policy library | yes | yes | not in review scope |
-| `cmd/moonattest` file CLI | yes | no (Node.js adapter) | not in review scope |
+| Parsing and policy library | yes | yes | not currently shipped |
+| `cmd/moonattest` file CLI | yes | no (Node.js adapter) | not currently shipped |
 
 The CLI deliberately uses a JS-only file adapter; the verification core stays
 portable and deterministic.
@@ -77,17 +77,18 @@ portable and deterministic.
 - Trust is explicit: callers provide public keys and policy constraints.
 - Verification is fail-closed and offline. No registry, GitHub, Rekor, or OCI
   service is contacted by the library.
-- The review candidate supports raw DSSE envelopes and Ed25519 public keys in
+- The current implementation supports raw DSSE envelopes and Ed25519 public keys in
   hex. Sigstore Bundle/Fulcio/Rekor integration, OCI pulls, key discovery,
-  timestamp freshness, and SLSA level certification are future work.
+  timestamp freshness, and SLSA level certification are outside the current
+  implementation.
 - `hustcer/ed25519` is pure MoonBit but not independently audited; see
   `SECURITY.md` before production deployment.
 
 ## Project status
 
-The initial review slice has a real test-first history. The current suite has 17
-library tests across JS and Wasm-GC plus a PowerShell/Node end-to-end tamper demo.
-See `docs/initial-review-application.md` and `docs/acceptance-checklist.md`.
+Version 0.1.0 provides 17 library tests across JS and Wasm-GC plus a
+PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
+the reproducible command matrix.
 
 ## License
 

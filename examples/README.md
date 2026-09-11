@@ -1,6 +1,6 @@
 # MoonAttest examples
 
-Run the five-minute demonstration from the repository root:
+Run the local demonstration from the repository root:
 
 ```powershell
 pwsh -File scripts/demo.ps1
