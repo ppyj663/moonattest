@@ -6,3 +6,7 @@ import {
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/json",
 }
+
+import {
+  "ppyj663/moonattest/src" @moonattest,
+} for "test"

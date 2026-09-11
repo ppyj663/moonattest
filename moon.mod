@@ -2,7 +2,7 @@ name = "ppyj663/moonattest"
 
 version = "0.1.0"
 
-source = "src"
+source = "."
 
 license = "Apache-2.0"
 

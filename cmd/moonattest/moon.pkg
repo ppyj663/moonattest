@@ -1,0 +1,8 @@
+import {
+  "ppyj663/moonattest/src" @attest,
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "js"
