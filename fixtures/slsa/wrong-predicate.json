@@ -1,0 +1,8 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    { "name": "artifact.bin", "digest": { "sha256": "abc123" } }
+  ],
+  "predicateType": "https://example.invalid/predicate",
+  "predicate": {}
+}

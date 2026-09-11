@@ -1,0 +1,18 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    { "name": "artifact.bin", "digest": { "sha256": "abc123" } }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://example.com/build/v1",
+      "externalParameters": {
+        "repository": { "url": "https://github.com/example/project" }
+      }
+    },
+    "runDetails": {
+      "builder": { "id": "https://builder.example/id" }
+    }
+  }
+}

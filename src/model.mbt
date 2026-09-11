@@ -57,6 +57,25 @@ pub fn Provenance::new(builder_id : String, source_uri : String) -> Provenance {
 }
 
 ///|
+/// An in-toto Statement carrying a SLSA provenance predicate.
+pub(all) struct Statement {
+  statement_type : String
+  subjects : Array[Subject]
+  predicate_type : String
+  predicate : Json
+}
+
+///|
+pub fn Statement::new(
+  statement_type : String,
+  subjects : Array[Subject],
+  predicate_type : String,
+  predicate : Json,
+) -> Statement {
+  { statement_type, subjects, predicate_type, predicate, }
+}
+
+///|
 /// Explicit trust constraints. Empty strings mean that a constraint is disabled.
 pub(all) struct Policy {
   digest_algorithm : String
