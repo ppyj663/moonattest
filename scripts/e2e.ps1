@@ -41,6 +41,18 @@ try {
   if ($LASTEXITCODE -ne 1) { throw "missing subject should exit 1" }
   Assert-Contains $missingSubject "SUBJECT_NOT_FOUND" "missing subject was not reported"
 
+  $wrongType = Join-Path $env:TEMP ("moonattest-wrong-type-" + [Guid]::NewGuid().ToString("N") + ".json")
+  $envelope = Get-Content -Raw -LiteralPath $valid | ConvertFrom-Json
+  $envelope.payloadType = "application/octet-stream"
+  $envelope | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $wrongType -Encoding utf8
+  try {
+    $typeMismatch = & $moon run cmd/moonattest verify $wrongType --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+    if ($LASTEXITCODE -ne 1) { throw "payload type mismatch should exit 1" }
+    Assert-Contains $typeMismatch "PAYLOAD_TYPE_MISMATCH" "payload type mismatch was not reported"
+  } finally {
+    Remove-Item -LiteralPath $wrongType -Force -ErrorAction SilentlyContinue
+  }
+
   $sourceMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/other/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "source mismatch should exit 1" }
   Assert-Contains $sourceMismatch "SOURCE_MISMATCH" "source mismatch was not reported"

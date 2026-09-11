@@ -154,3 +154,16 @@ test "reject a policy subject name that is absent" {
   assert_eq(report.ok, false)
   assert_eq(report_has_code(report, "SUBJECT_NOT_FOUND"), true)
 }
+
+///|
+test "reject a non-in-toto DSSE payload type" {
+  let envelope = Envelope::new(
+    "application/octet-stream",
+    @base64.encode(@utf8.encode(test_payload.to_string_view())),
+    [],
+  )
+  let report = verify_envelope(envelope, valid_policy(), valid_keys())
+  assert_eq(report.ok, false)
+  assert_eq(report.findings.length(), 1)
+  assert_eq(report_has_code(report, "PAYLOAD_TYPE_MISMATCH"), true)
+}

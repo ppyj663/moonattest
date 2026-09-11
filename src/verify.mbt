@@ -4,6 +4,9 @@ fn failed_report(findings : Array[Finding]) -> Report {
 }
 
 ///|
+const INTOTO_PAYLOAD_TYPE : String = "application/vnd.in-toto+json"
+
+///|
 /// Verify a DSSE envelope, its in-toto/SLSA payload, and an explicit trust policy.
 /// Verification is offline and fails closed: any malformed input, policy
 /// mismatch, or missing valid trusted signature yields `ok == false`.
@@ -13,6 +16,12 @@ pub fn verify_envelope(
   trusted_keys : Map[String, String],
 ) -> Report {
   let findings : Array[Finding] = []
+  if envelope.payload_type != INTOTO_PAYLOAD_TYPE {
+    add_finding(
+      findings, "PAYLOAD_TYPE_MISMATCH", "DSSE payload type is not application/vnd.in-toto+json",
+    )
+    return failed_report(findings)
+  }
   let payload_bytes = @base64.decode(envelope.payload.to_string_view()) catch {
     _ => {
       add_finding(

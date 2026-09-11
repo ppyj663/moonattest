@@ -66,6 +66,10 @@ All parsers return `Result` values, accept unknown extension fields, and reject
 missing or malformed required fields. `verify_envelope` returns stable
 diagnostic codes and never performs network access.
 
+The verifier accepts the in-toto DSSE media type
+`application/vnd.in-toto+json`; other payload types are rejected with
+`PAYLOAD_TYPE_MISMATCH` before payload decoding.
+
 Policies target the first subject by default. Use `Policy.with_subject(name)`
 when a Statement contains multiple subjects; a missing name produces the
 `SUBJECT_NOT_FOUND` diagnostic.
