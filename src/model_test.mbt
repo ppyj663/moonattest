@@ -1,0 +1,28 @@
+///|
+test "public model constructors preserve verification inputs" {
+  let signature = @moonattest.Signature::new("release-key", "c2ln")
+  let envelope = @moonattest.Envelope::new(
+    "application/vnd.in-toto+json",
+    "e30=",
+    [signature],
+  )
+  let subject = @moonattest.Subject::new("artifact.bin", "sha256", "abc123")
+  let provenance = @moonattest.Provenance::new(
+    "https://builder.example/id", "https://github.com/example/project",
+  )
+  let policy = @moonattest.Policy::new(
+    "sha256",
+    "abc123",
+    "https://github.com/example/project",
+    "https://builder.example/id",
+    ["release-key"],
+  )
+  let finding = @moonattest.Finding::new("OK", "verification passed")
+  let report = @moonattest.Report::new(true, [finding])
+  assert_eq(signature.key_id, "release-key")
+  assert_eq(envelope.payload_type, "application/vnd.in-toto+json")
+  assert_eq(subject.digest_algorithm, "sha256")
+  assert_eq(provenance.builder_id, "https://builder.example/id")
+  assert_eq(policy.expected_digest, "abc123")
+  assert_eq(report.ok, true)
+}
