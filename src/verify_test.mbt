@@ -5,6 +5,9 @@ let test_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"su
 let two_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"source.tar\",\"digest\":{\"sha256\":\"abc123\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"def456\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
 
 ///|
+let ambiguous_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"abc123\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"def456\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
+
+///|
 let test_seed : Bytes = b"\x9d\x61\xb1\x9d\xef\xfd\x5a\x60\xba\x84\x4a\xf4\x92\xec\x2c\xc4\x44\x49\xc5\x69\x7b\x32\x69\x19\x70\x3b\xac\x03\x1c\xae\x7f\x60"
 
 ///|
@@ -189,6 +192,18 @@ test "reject a policy subject name that is absent" {
   )
   assert_eq(report.ok, false)
   assert_eq(report_has_code(report, "SUBJECT_NOT_FOUND"), true)
+}
+
+///|
+test "reject an ambiguous policy subject name" {
+  let policy = valid_policy().with_subject("release.tar")
+  let report = verify_envelope(
+    envelope_for_payload(ambiguous_subject_payload),
+    policy,
+    valid_keys(),
+  )
+  assert_eq(report.ok, false)
+  assert_eq(report_has_code(report, "SUBJECT_AMBIGUOUS"), true)
 }
 
 ///|

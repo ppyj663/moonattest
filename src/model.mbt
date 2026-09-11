@@ -45,7 +45,7 @@ pub fn Subject::new(
 }
 
 ///|
-/// The minimum provenance context used by the first verifier.
+/// The minimum provenance context used by the verifier.
 pub(all) struct Provenance {
   builder_id : String
   source_uri : String

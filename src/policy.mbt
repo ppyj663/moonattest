@@ -8,16 +8,25 @@ fn add_finding(
 }
 
 ///|
-fn select_subject(statement : Statement, requested_name : String) -> Subject? {
+fn select_subject(
+  statement : Statement,
+  requested_name : String,
+) -> (Subject?, Bool) {
   if requested_name == "" {
-    return Some(statement.subjects[0])
+    return (Some(statement.subjects[0]), false)
   }
+  let mut match_count = 0
+  let mut selected : Subject? = None
   for subject in statement.subjects {
     if subject.name == requested_name {
-      return Some(subject)
+      match_count += 1
+      if match_count > 1 {
+        return (None, true)
+      }
+      selected = Some(subject)
     }
   }
-  None
+  (selected, false)
 }
 
 ///|
@@ -27,7 +36,17 @@ fn check_policy(
   policy : Policy,
   findings : Array[Finding],
 ) -> Unit {
-  let subject = match select_subject(statement, policy.subject_name) {
+  let (selected_subject, ambiguous) = select_subject(
+    statement,
+    policy.subject_name,
+  )
+  if ambiguous {
+    add_finding(
+      findings, "SUBJECT_AMBIGUOUS", "policy subject name matches more than one statement subject",
+    )
+    return
+  }
+  let subject = match selected_subject {
     Some(subject) => subject
     None => {
       add_finding(

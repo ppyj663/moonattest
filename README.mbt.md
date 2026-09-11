@@ -72,7 +72,8 @@ The verifier accepts the in-toto DSSE media type
 
 Policies target the first subject by default. Use `Policy.with_subject(name)`
 when a Statement contains multiple subjects; a missing name produces the
-`SUBJECT_NOT_FOUND` diagnostic.
+`SUBJECT_NOT_FOUND` diagnostic. Duplicate names are rejected with
+`SUBJECT_AMBIGUOUS` instead of selecting one arbitrarily.
 
 Policies require one valid trusted signature by default. Use
 `Policy.with_min_valid_signatures(n)` to require signatures from at least `n`
