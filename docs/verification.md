@@ -20,6 +20,6 @@ the JavaScript target because its adapter reads local files through Node.js.
 
 The end-to-end script creates temporary signed envelopes, verifies both the
 single-signature and repeated-`--public-key` multi-signature cases, and checks
-deterministic rejection for duplicate key IDs, source, builder, digest,
-signature, and malformed-Base64 changes. Temporary files are deleted when the
-script finishes.
+deterministic rejection for duplicate or malformed key configuration, source,
+builder, digest, signature, and malformed-Base64 changes. Temporary files are
+deleted when the script finishes.

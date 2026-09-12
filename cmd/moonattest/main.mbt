@@ -125,6 +125,12 @@ fn parse_public_key(value : String) -> (String, String)? {
 }
 
 ///|
+fn valid_public_key_hex(value : String) -> Bool {
+  let decoded = @hex.decode(value.to_string_view()) catch { _ => return false }
+  decoded.length() == 32
+}
+
+///|
 fn parse_public_keys(
   args : Array[String],
   start : Int,
@@ -141,6 +147,9 @@ fn parse_public_keys(
       }
       if pair.0.is_empty() {
         return (pairs, Some("--public-key key ID must not be empty"))
+      }
+      if !valid_public_key_hex(pair.1) {
+        return (pairs, Some("--public-key must be a 32-byte hex public key"))
       }
       for existing in pairs {
         if existing.0 == pair.0 {

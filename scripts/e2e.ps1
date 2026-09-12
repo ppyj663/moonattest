@@ -49,6 +49,10 @@ try {
   if ($LASTEXITCODE -ne 2) { throw "duplicate CLI key IDs should exit 2" }
   Assert-Contains $duplicateKey "key IDs must be unique" "duplicate CLI key IDs were not rejected"
 
+  $invalidKey = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=abcd" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "invalid CLI public key should exit 2" }
+  Assert-Contains $invalidKey "must be a 32-byte hex public key" "invalid CLI public key was not rejected"
+
   $jsonVerify = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --json | Out-String
   if ($LASTEXITCODE -ne 0) { throw "JSON verify should exit 0`n$jsonVerify" }
   Assert-Contains $jsonVerify '"ok":true' "JSON verify output missing ok=true"

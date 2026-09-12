@@ -1,5 +1,6 @@
 import {
   "ppyj663/moonattest/src" @attest,
+  "moonbitlang/core/encoding/hex",
   "moonbitlang/core/env",
   "moonbitlang/core/string",
 }

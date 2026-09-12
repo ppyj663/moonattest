@@ -44,6 +44,9 @@ moon run cmd/moonattest verify envelope.json `
   --min-signatures 2
 ```
 
+Each public key value must be a 32-byte Ed25519 public key encoded as hex.
+Malformed key configuration exits with code `2` before verification starts.
+
 ## Library API
 
 The library package is `ppyj663/moonattest/src`:
