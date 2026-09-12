@@ -11,9 +11,10 @@ $inspect = & $moon run cmd/moonattest inspect fixtures/dsse/valid-envelope.json 
 if ($LASTEXITCODE -ne 0) { throw "inspect should exit 0" }
 Assert-Contains $inspect "status: parsed" "inspect output missing parsed status"
 
-$valid = Join-Path $env:TEMP ("moonattest-valid-" + [Guid]::NewGuid().ToString("N") + ".json")
-$tampered = Join-Path $env:TEMP ("moonattest-tampered-" + [Guid]::NewGuid().ToString("N") + ".json")
-$multi = Join-Path $env:TEMP ("moonattest-multi-" + [Guid]::NewGuid().ToString("N") + ".json")
+$tempRoot = [IO.Path]::GetTempPath()
+$valid = Join-Path $tempRoot ("moonattest-valid-" + [Guid]::NewGuid().ToString("N") + ".json")
+$tampered = Join-Path $tempRoot ("moonattest-tampered-" + [Guid]::NewGuid().ToString("N") + ".json")
+$multi = Join-Path $tempRoot ("moonattest-multi-" + [Guid]::NewGuid().ToString("N") + ".json")
 try {
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $valid
   if ($LASTEXITCODE -ne 0) { throw "demo envelope generation failed" }
@@ -80,7 +81,7 @@ try {
   if ($LASTEXITCODE -ne 2) { throw "invalid signature threshold should exit 2" }
   Assert-Contains $invalidThreshold "--min-signatures must be an integer" "invalid signature threshold was not reported"
 
-  $wrongType = Join-Path $env:TEMP ("moonattest-wrong-type-" + [Guid]::NewGuid().ToString("N") + ".json")
+  $wrongType = Join-Path $tempRoot ("moonattest-wrong-type-" + [Guid]::NewGuid().ToString("N") + ".json")
   $envelope = Get-Content -Raw -LiteralPath $valid | ConvertFrom-Json
   $envelope.payloadType = "application/octet-stream"
   $envelope | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $wrongType -Encoding utf8

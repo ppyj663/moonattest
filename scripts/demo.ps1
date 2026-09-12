@@ -2,7 +2,8 @@ $ErrorActionPreference = "Stop"
 $moon = if (Get-Command moon -ErrorAction SilentlyContinue) { "moon" } else { "C:\Users\3i\.moon\bin\moon.exe" }
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
-$valid = Join-Path $env:TEMP ("moonattest-demo-" + [Guid]::NewGuid().ToString("N") + ".json")
+$tempRoot = [IO.Path]::GetTempPath()
+$valid = Join-Path $tempRoot ("moonattest-demo-" + [Guid]::NewGuid().ToString("N") + ".json")
 try {
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $valid
   & $moon run cmd/moonattest inspect $valid
