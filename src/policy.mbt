@@ -83,4 +83,9 @@ fn check_policy(
       findings, "BUILDER_MISMATCH", "provenance builder does not match policy",
     )
   }
+  if policy.build_type != "" && provenance.build_type != policy.build_type {
+    add_finding(
+      findings, "BUILD_TYPE_MISMATCH", "provenance build type does not match policy",
+    )
+  }
 }

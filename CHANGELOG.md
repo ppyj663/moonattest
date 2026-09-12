@@ -5,6 +5,7 @@
 - Added typed DSSE envelope parsing and exact UTF-8 PAE construction.
 - Added in-toto Statement v1 and SLSA Provenance v1 parsing.
 - Added required SLSA v1 `buildDefinition.buildType` parsing.
+- Added optional exact build-type policy enforcement and CLI diagnostics.
 - Added SHA-256 and Ed25519 verification against explicit trust policy.
 - Added optional subject-name selection for Statements containing multiple artifacts.
 - Added ambiguity detection for duplicate subject names.

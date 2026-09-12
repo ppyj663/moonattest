@@ -33,5 +33,5 @@ The end-to-end script creates temporary signed envelopes and artifacts, verifies
 both digest and direct-file inputs plus repeated-`--public-key` multi-signature
 cases, and checks deterministic rejection for unreadable or tampered artifacts,
 duplicate or malformed key configuration, malformed or mismatched SHA-256
-digests, source, builder, signature, and malformed-Base64 changes. Temporary
-files are deleted when the script finishes.
+digests, source, builder, build type, signature, and malformed-Base64 changes.
+Temporary files are deleted when the script finishes.

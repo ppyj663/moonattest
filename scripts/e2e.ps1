@@ -40,6 +40,14 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "valid verify should exit 0`n$verified" }
   Assert-Contains $verified "VERIFIED" "valid verify output missing VERIFIED"
 
+  $buildTypeVerified = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --build-type https://example.com/build/v1 --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 0) { throw "matching build type should exit 0`n$buildTypeVerified" }
+  Assert-Contains $buildTypeVerified "VERIFIED" "matching build type output missing VERIFIED"
+
+  $buildTypeMismatch = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --build-type https://example.com/build/other --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 1) { throw "build type mismatch should exit 1" }
+  Assert-Contains $buildTypeMismatch "BUILD_TYPE_MISMATCH" "build type mismatch was not reported"
+
   $artifactVerified = & $moon run cmd/moonattest verify $valid --artifact $artifact --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 0) { throw "local artifact verify should exit 0`n$artifactVerified" }
   Assert-Contains $artifactVerified "VERIFIED" "local artifact verify output missing VERIFIED"

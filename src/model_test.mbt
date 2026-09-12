@@ -26,6 +26,11 @@ test "public model constructors preserve verification inputs" {
   assert_eq(subject.digest_algorithm, "sha256")
   assert_eq(provenance.builder_id, "https://builder.example/id")
   assert_eq(provenance.build_type, "https://example.com/build/v1")
+  assert_eq(policy.build_type, "")
+  assert_eq(
+    policy.with_build_type("https://example.com/build/v1").build_type,
+    "https://example.com/build/v1",
+  )
   assert_eq(
     policy.expected_digest,
     "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",

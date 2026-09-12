@@ -39,6 +39,7 @@ moon run cmd/moonattest verify envelope.json `
   --artifact release.tar `
   --source https://github.com/example/project `
   --builder https://builder.example/id `
+  --build-type https://example.com/build/v1 `
   --public-key release-key=<release-public-key-hex>
 ```
 
@@ -111,6 +112,11 @@ Policies require one valid trusted signature by default. Use
 `Policy.with_min_valid_signatures(n)` to require signatures from at least `n`
 distinct trusted key IDs; duplicate signatures from one key do not increase the
 count.
+
+SLSA v1 `buildDefinition.buildType` is required during parsing. Use
+`Policy.with_build_type(uri)` or CLI `--build-type <uri>` when the verifier must
+also enforce the exact build template; omitting the policy option preserves
+compatibility while still requiring the field to exist.
 
 ## Supported matrix
 

@@ -63,19 +63,22 @@ pub(all) struct Policy {
   expected_digest : String
   source_uri : String
   builder_id : String
+  build_type : String
   trusted_key_ids : Array[String]
   subject_name : String
   min_valid_signatures : Int
 }
 pub fn Policy::new(String, String, String, String, Array[String]) -> Self
+pub fn Policy::with_build_type(Self, String) -> Self
 pub fn Policy::with_min_valid_signatures(Self, Int) -> Self
 pub fn Policy::with_subject(Self, String) -> Self
 
 pub(all) struct Provenance {
   builder_id : String
   source_uri : String
+  build_type : String
 }
-pub fn Provenance::new(String, String) -> Self
+pub fn Provenance::new(String, String, String) -> Self
 
 pub(all) struct Report {
   ok : Bool

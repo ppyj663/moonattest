@@ -144,6 +144,14 @@ test "reject a builder mismatch" {
 }
 
 ///|
+test "reject a build type mismatch" {
+  let policy = valid_policy().with_build_type("https://example.com/build/other")
+  let report = verify_envelope(valid_envelope(), policy, valid_keys())
+  assert_eq(report.ok, false)
+  assert_eq(report_has_code(report, "BUILD_TYPE_MISMATCH"), true)
+}
+
+///|
 test "reject an artifact digest mismatch" {
   let policy = Policy::new(
     "sha256",
