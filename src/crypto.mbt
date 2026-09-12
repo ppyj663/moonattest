@@ -9,6 +9,13 @@ pub fn sha256_hex(data : Bytes) -> String {
 }
 
 ///|
+/// Return whether a string is exactly one SHA-256 digest encoded as hex.
+pub fn is_valid_sha256_digest(value : String) -> Bool {
+  let decoded = @hex.decode(value.to_string_view()) catch { _ => return false }
+  decoded.length() == 32
+}
+
+///|
 fn verify_signature(
   envelope : Envelope,
   payload : String,

@@ -2,6 +2,8 @@
 package "ppyj663/moonattest/src"
 
 // Values
+pub fn is_valid_sha256_digest(String) -> Bool
+
 pub fn pae(String, String) -> String
 
 pub fn parse_envelope(StringView) -> Result[Envelope, DsseError]
@@ -33,6 +35,7 @@ pub suberror IntotoError {
   IntotoInvalidField(String)
   EmptySubjects
   MissingDigest(String)
+  InvalidDigest(String)
 }
 
 pub suberror SlsaError {

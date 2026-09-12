@@ -61,11 +61,17 @@ fn check_policy(
       findings, "DIGEST_ALGORITHM_MISMATCH", "subject digest algorithm does not match policy",
     )
   }
-  if policy.expected_digest != "" &&
-    subject.digest.to_lower() != policy.expected_digest.to_lower() {
-    add_finding(
-      findings, "DIGEST_MISMATCH", "subject digest does not match policy",
-    )
+  if policy.expected_digest != "" {
+    if policy.digest_algorithm == "sha256" &&
+      !is_valid_sha256_digest(policy.expected_digest) {
+      add_finding(
+        findings, "INVALID_POLICY_DIGEST", "policy SHA-256 digest is not 32-byte hexadecimal",
+      )
+    } else if subject.digest.to_lower() != policy.expected_digest.to_lower() {
+      add_finding(
+        findings, "DIGEST_MISMATCH", "subject digest does not match policy",
+      )
+    }
   }
   if policy.source_uri != "" && provenance.source_uri != policy.source_uri {
     add_finding(

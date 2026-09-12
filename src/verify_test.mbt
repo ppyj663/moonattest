@@ -1,11 +1,11 @@
 ///|
-let test_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"artifact.bin\",\"digest\":{\"sha256\":\"abc123\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
+let test_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"artifact.bin\",\"digest\":{\"sha256\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
 
 ///|
-let two_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"source.tar\",\"digest\":{\"sha256\":\"abc123\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"def456\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
+let two_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"source.tar\",\"digest\":{\"sha256\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
 
 ///|
-let ambiguous_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"abc123\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"def456\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
+let ambiguous_subject_payload : String = "{\"_type\":\"https://in-toto.io/Statement/v1\",\"subject\":[{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}},{\"name\":\"release.tar\",\"digest\":{\"sha256\":\"cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34\"}}],\"predicateType\":\"https://slsa.dev/provenance/v1\",\"predicate\":{\"buildDefinition\":{\"externalParameters\":{\"repository\":{\"url\":\"https://github.com/example/project\"}}},\"runDetails\":{\"builder\":{\"id\":\"https://builder.example/id\"}}}}"
 
 ///|
 let test_seed : Bytes = b"\x9d\x61\xb1\x9d\xef\xfd\x5a\x60\xba\x84\x4a\xf4\x92\xec\x2c\xc4\x44\x49\xc5\x69\x7b\x32\x69\x19\x70\x3b\xac\x03\x1c\xae\x7f\x60"
@@ -63,7 +63,7 @@ fn valid_envelope() -> Envelope {
 fn valid_policy() -> Policy {
   Policy::new(
     "sha256",
-    "abc123",
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     "https://github.com/example/project",
     "https://builder.example/id",
     ["release-key"],
@@ -119,7 +119,7 @@ test "reject an invalid signature" {
 test "reject a source mismatch" {
   let policy = Policy::new(
     "sha256",
-    "abc123",
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     "https://github.com/other/project",
     "https://builder.example/id",
     ["release-key"],
@@ -133,7 +133,7 @@ test "reject a source mismatch" {
 test "reject a builder mismatch" {
   let policy = Policy::new(
     "sha256",
-    "abc123",
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     "https://github.com/example/project",
     "https://builder.example/other",
     ["release-key"],
@@ -147,7 +147,7 @@ test "reject a builder mismatch" {
 test "reject an artifact digest mismatch" {
   let policy = Policy::new(
     "sha256",
-    "deadbeef",
+    "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34",
     "https://github.com/example/project",
     "https://builder.example/id",
     ["release-key"],
@@ -155,6 +155,14 @@ test "reject an artifact digest mismatch" {
   let report = verify_envelope(valid_envelope(), policy, valid_keys())
   assert_eq(report.ok, false)
   assert_eq(report_has_code(report, "DIGEST_MISMATCH"), true)
+}
+
+///|
+test "reject a malformed SHA-256 policy digest" {
+  let policy = { ..valid_policy(), expected_digest: "abc123", }
+  let report = verify_envelope(valid_envelope(), policy, valid_keys())
+  assert_eq(report.ok, false)
+  assert_eq(report_has_code(report, "INVALID_POLICY_DIGEST"), true)
 }
 
 ///|
@@ -172,7 +180,10 @@ test "reject a signature made by an untrusted key id" {
 ///|
 test "verify a named subject instead of the first subject" {
   let policy = valid_policy().with_subject("release.tar")
-  let policy = { ..policy, expected_digest: "def456", }
+  let policy = {
+    ..policy,
+    expected_digest: "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34",
+  }
   let report = verify_envelope(
     envelope_for_payload(two_subject_payload),
     policy,
@@ -223,7 +234,7 @@ test "reject a non-in-toto DSSE payload type" {
 test "require distinct trusted signatures when policy sets a threshold" {
   let policy = Policy::new(
     "sha256",
-    "abc123",
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     "https://github.com/example/project",
     "https://builder.example/id",
     ["release-key", "backup-key"],

@@ -6,7 +6,7 @@ $valid = Join-Path $env:TEMP ("moonattest-demo-" + [Guid]::NewGuid().ToString("N
 try {
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $valid
   & $moon run cmd/moonattest inspect $valid
-  & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
+  & $moon run cmd/moonattest verify $valid --digest ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
 } finally {
   Remove-Item -LiteralPath $valid -Force -ErrorAction SilentlyContinue
 }

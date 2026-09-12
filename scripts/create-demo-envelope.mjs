@@ -7,7 +7,14 @@ const twoSignatures = args.includes("--two-signatures");
 const payloadType = "application/vnd.in-toto+json";
 const statement = {
   _type: "https://in-toto.io/Statement/v1",
-  subject: [{ name: "artifact.bin", digest: { sha256: "abc123" } }],
+  subject: [
+    {
+      name: "artifact.bin",
+      digest: {
+        sha256: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      },
+    },
+  ],
   predicateType: "https://slsa.dev/provenance/v1",
   predicate: {
     buildDefinition: {

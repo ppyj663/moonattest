@@ -11,5 +11,6 @@
 - Added configurable minimum trusted-signature thresholds with duplicate-key protection.
 - Added repeatable CLI `--public-key` options for multi-signature verification.
 - Added CLI validation for 32-byte hexadecimal Ed25519 public keys.
+- Added strict 32-byte hexadecimal validation for SHA-256 subject and policy digests.
 - Added JS CLI commands `inspect` and `verify` with exit codes 0/1/2.
 - Added disposable signed demo and tamper-focused end-to-end regression.

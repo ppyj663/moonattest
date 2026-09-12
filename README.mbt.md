@@ -36,7 +36,7 @@ For a policy that requires signatures from two different trusted keys, repeat
 
 ```powershell
 moon run cmd/moonattest verify envelope.json `
-  --digest abc123 `
+  --digest ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad `
   --source https://github.com/example/project `
   --builder https://builder.example/id `
   --public-key release-key=<release-public-key-hex> `
@@ -46,6 +46,8 @@ moon run cmd/moonattest verify envelope.json `
 
 Each public key value must be a 32-byte Ed25519 public key encoded as hex.
 Malformed key configuration exits with code `2` before verification starts.
+The `--digest` value must likewise be a complete 32-byte SHA-256 digest in
+hexadecimal form.
 
 ## Library API
 

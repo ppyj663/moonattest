@@ -184,6 +184,10 @@ fn run_verify(args : Array[String], index : Int) -> Int {
       return 2
     }
   }
+  if !@attest.is_valid_sha256_digest(digest) {
+    println("error: --digest must be a 32-byte hexadecimal SHA-256 value")
+    return 2
+  }
   let source = match option_value(args, index + 2, "--source") {
     Some(value) => value
     None => {

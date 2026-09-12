@@ -15,6 +15,7 @@ pub suberror IntotoError {
   IntotoInvalidField(String)
   EmptySubjects
   MissingDigest(String)
+  InvalidDigest(String)
 }
 
 ///|
@@ -52,6 +53,9 @@ fn parse_subject(value : Json) -> Result[Subject, IntotoError] {
       return Err(IntotoInvalidField("subject.digest"))
     }
     guard !digest.is_empty() else { return Err(MissingDigest(algorithm)) }
+    if algorithm == "sha256" && !is_valid_sha256_digest(digest) {
+      return Err(InvalidDigest(algorithm))
+    }
     if first_digest is None {
       first_digest = Some((algorithm, digest))
     }

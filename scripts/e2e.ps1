@@ -21,9 +21,11 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "multi-signature demo envelope generation failed" }
   $publicKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
   $backupPublicKey = "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
+  $artifactDigest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  $otherDigest = "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34"
   $verifyArgs = @(
     "run", "cmd/moonattest", "verify", $valid,
-    "--digest", "abc123",
+    "--digest", $artifactDigest,
     "--source", "https://github.com/example/project",
     "--builder", "https://builder.example/id",
     "--public-key", "release-key=$publicKey"
@@ -34,7 +36,7 @@ try {
 
   $multiVerifyArgs = @(
     "run", "cmd/moonattest", "verify", $multi,
-    "--digest", "abc123",
+    "--digest", $artifactDigest,
     "--source", "https://github.com/example/project",
     "--builder", "https://builder.example/id",
     "--public-key", "release-key=$publicKey",
@@ -45,32 +47,36 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "multi-signature verify should exit 0`n$multiVerified" }
   Assert-Contains $multiVerified "VERIFIED" "multi-signature verify output missing VERIFIED"
 
-  $duplicateKey = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --public-key "release-key=$publicKey" | Out-String
+  $duplicateKey = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 2) { throw "duplicate CLI key IDs should exit 2" }
   Assert-Contains $duplicateKey "key IDs must be unique" "duplicate CLI key IDs were not rejected"
 
-  $invalidKey = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=abcd" | Out-String
+  $invalidKey = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=abcd" | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid CLI public key should exit 2" }
   Assert-Contains $invalidKey "must be a 32-byte hex public key" "invalid CLI public key was not rejected"
 
-  $jsonVerify = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --json | Out-String
+  $invalidDigest = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "invalid CLI digest should exit 2" }
+  Assert-Contains $invalidDigest "must be a 32-byte hexadecimal SHA-256 value" "invalid CLI digest was not rejected"
+
+  $jsonVerify = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --json | Out-String
   if ($LASTEXITCODE -ne 0) { throw "JSON verify should exit 0`n$jsonVerify" }
   Assert-Contains $jsonVerify '"ok":true' "JSON verify output missing ok=true"
   Assert-Contains $jsonVerify '"findings":[]' "JSON verify output missing empty findings"
 
-  $namedSubject = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject artifact.bin | Out-String
+  $namedSubject = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject artifact.bin | Out-String
   if ($LASTEXITCODE -ne 0) { throw "named subject verify should exit 0`n$namedSubject" }
   Assert-Contains $namedSubject "VERIFIED" "named subject verify output missing VERIFIED"
 
-  $missingSubject = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject missing.bin | Out-String
+  $missingSubject = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --subject missing.bin | Out-String
   if ($LASTEXITCODE -ne 1) { throw "missing subject should exit 1" }
   Assert-Contains $missingSubject "SUBJECT_NOT_FOUND" "missing subject was not reported"
 
-  $thresholdMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures 2 | Out-String
+  $thresholdMismatch = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures 2 | Out-String
   if ($LASTEXITCODE -ne 1) { throw "signature threshold mismatch should exit 1" }
   Assert-Contains $thresholdMismatch "SIGNATURE_THRESHOLD_UNMET" "signature threshold mismatch was not reported"
 
-  $invalidThreshold = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures nope | Out-String
+  $invalidThreshold = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" --min-signatures nope | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid signature threshold should exit 2" }
   Assert-Contains $invalidThreshold "--min-signatures must be an integer" "invalid signature threshold was not reported"
 
@@ -79,29 +85,29 @@ try {
   $envelope.payloadType = "application/octet-stream"
   $envelope | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $wrongType -Encoding utf8
   try {
-    $typeMismatch = & $moon run cmd/moonattest verify $wrongType --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+    $typeMismatch = & $moon run cmd/moonattest verify $wrongType --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
     if ($LASTEXITCODE -ne 1) { throw "payload type mismatch should exit 1" }
     Assert-Contains $typeMismatch "PAYLOAD_TYPE_MISMATCH" "payload type mismatch was not reported"
   } finally {
     Remove-Item -LiteralPath $wrongType -Force -ErrorAction SilentlyContinue
   }
 
-  $sourceMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/other/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  $sourceMismatch = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/other/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "source mismatch should exit 1" }
   Assert-Contains $sourceMismatch "SOURCE_MISMATCH" "source mismatch was not reported"
 
-  $builderMismatch = & $moon run cmd/moonattest verify $valid --digest abc123 --source https://github.com/example/project --builder https://builder.example/other --public-key "release-key=$publicKey" | Out-String
+  $builderMismatch = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/other --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "builder mismatch should exit 1" }
   Assert-Contains $builderMismatch "BUILDER_MISMATCH" "builder mismatch was not reported"
 
-  $digestMismatch = & $moon run cmd/moonattest verify $valid --digest deadbeef --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  $digestMismatch = & $moon run cmd/moonattest verify $valid --digest $otherDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "digest mismatch should exit 1" }
   Assert-Contains $digestMismatch "DIGEST_MISMATCH" "digest mismatch was not reported"
 
   $envelope = Get-Content -Raw -LiteralPath $valid | ConvertFrom-Json
   $envelope.signatures[0].sig = "AAAA"
   $envelope | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $tampered -Encoding utf8
-  $signatureMismatch = & $moon run cmd/moonattest verify $tampered --digest abc123 --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  $signatureMismatch = & $moon run cmd/moonattest verify $tampered --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 1) { throw "signature mismatch should exit 1" }
   Assert-Contains $signatureMismatch "SIGNATURE_INVALID" "signature mismatch was not reported"
 

@@ -9,9 +9,10 @@ Fulcio, pull OCI artifacts, or decide whether a build meets a SLSA level.
 
 ## Fail-closed behavior
 
-Malformed JSON/Base64, missing required fields, unsupported predicate types,
-unknown key IDs, invalid signatures, and policy mismatches produce a rejected
-report. Callers should treat any `ok == false` report as untrusted output.
+Malformed JSON/Base64, invalid SHA-256 digest encodings, missing required
+fields, unsupported predicate types, unknown key IDs, invalid signatures, and
+policy mismatches produce a rejected report. Callers should treat any
+`ok == false` report as untrusted output.
 
 ## Cryptography
 
