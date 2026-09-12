@@ -15,3 +15,4 @@
 - Added direct local artifact verification with built-in SHA-256 calculation.
 - Added JS CLI commands `inspect` and `verify` with exit codes 0/1/2.
 - Added disposable signed demo and tamper-focused end-to-end regression.
+- Added automated, checksum-protected GitHub Releases for matching version tags.

@@ -140,6 +140,9 @@ Version 0.1.0 provides 29 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 
+Version tags are published as checksum-protected GitHub Release assets. See
+`docs/releasing.md` for the public release procedure.
+
 ## License
 
 Apache-2.0. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.

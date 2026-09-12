@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MOON_VERSION: "0.1.20260904"
+  MOONC_VERSION: "v0.10.12+1634b282e"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7.0.1
+      - name: Install MoonBit
+        shell: bash
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Verify pinned toolchain
+        shell: pwsh
+        run: |
+          ./scripts/verify-toolchain.ps1 `
+            -MoonVersion $env:MOON_VERSION `
+            -MooncVersion $env:MOONC_VERSION `
+            -MoonSha256 ebf6f42b9c1667cbd1e3bff5cf7fb091f1250a3eea417724e5b1a80de49783a9 `
+            -MooncSha256 a1fe6384cda566b33addc2082ab55845a712bd6b5f8a74244371a92b8afa7b36 `
+            -MoonrunSha256 71f9874f6068577b0ff72b680ec9a2ef0924e53f2a171b3576eeab98c61bdbdb
+      - name: Resolve dependencies
+        run: moon update
+      - name: Verify source
+        shell: pwsh
+        run: |
+          moon fmt --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          moon check --target js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          moon check --target wasm-gc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          moon test --target js
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          moon test --target wasm-gc
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/e2e.ps1
+      - name: Build release assets
+        shell: pwsh
+        run: ./scripts/package-release.ps1 -Tag $env:GITHUB_REF_NAME
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = Get-ChildItem -LiteralPath _build/release -File | Select-Object -ExpandProperty FullName
+          gh release create $env:GITHUB_REF_NAME $assets --verify-tag --generate-notes --title "MoonAttest $env:GITHUB_REF_NAME"

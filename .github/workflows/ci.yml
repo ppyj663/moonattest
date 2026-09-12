@@ -89,6 +89,10 @@ jobs:
           retention-days: 14
       - name: Package manifest
         run: moon package --list
+      - name: Verify release package
+        if: runner.os == 'Linux'
+        shell: pwsh
+        run: ./scripts/package-release.ps1 -Tag v0.1.0
       - name: End-to-end tamper demo
         shell: pwsh
         run: |
