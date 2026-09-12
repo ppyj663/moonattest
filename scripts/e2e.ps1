@@ -48,6 +48,22 @@ try {
   if ($LASTEXITCODE -ne 1) { throw "build type mismatch should exit 1" }
   Assert-Contains $buildTypeMismatch "BUILD_TYPE_MISMATCH" "build type mismatch was not reported"
 
+  $emptySource = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source "" --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "empty source should exit 2" }
+  Assert-Contains $emptySource "--source must not be empty" "empty source was not rejected"
+
+  $emptyBuilder = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder "" --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "empty builder should exit 2" }
+  Assert-Contains $emptyBuilder "--builder must not be empty" "empty builder was not rejected"
+
+  $emptyBuildType = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --build-type "" --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "empty build type should exit 2" }
+  Assert-Contains $emptyBuildType "--build-type must not be empty" "empty build type was not rejected"
+
+  $emptySubject = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --source https://github.com/example/project --builder https://builder.example/id --subject "" --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "empty subject should exit 2" }
+  Assert-Contains $emptySubject "--subject must not be empty" "empty subject was not rejected"
+
   $artifactVerified = & $moon run cmd/moonattest verify $valid --artifact $artifact --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
   if ($LASTEXITCODE -ne 0) { throw "local artifact verify should exit 0`n$artifactVerified" }
   Assert-Contains $artifactVerified "VERIFIED" "local artifact verify output missing VERIFIED"

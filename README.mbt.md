@@ -62,7 +62,8 @@ moon run cmd/moonattest verify envelope.json `
 Each public key value must be a 32-byte Ed25519 public key encoded as hex.
 Malformed key configuration exits with code `2` before verification starts.
 When supplied, the `--digest` value must likewise be a complete 32-byte SHA-256
-digest in hexadecimal form.
+digest in hexadecimal form. CLI trust constraints reject explicit empty values
+instead of silently disabling verification checks.
 
 ## Library API
 

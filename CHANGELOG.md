@@ -6,6 +6,7 @@
 - Added in-toto Statement v1 and SLSA Provenance v1 parsing.
 - Added required SLSA v1 `buildDefinition.buildType` parsing.
 - Added optional exact build-type policy enforcement and CLI diagnostics.
+- Added fail-closed validation for empty CLI trust constraints.
 - Added SHA-256 and Ed25519 verification against explicit trust policy.
 - Added optional subject-name selection for Statements containing multiple artifacts.
 - Added ambiguity detection for duplicate subject names.

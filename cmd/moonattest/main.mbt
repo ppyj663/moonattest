@@ -224,14 +224,26 @@ fn run_verify(args : Array[String], index : Int) -> Int {
     }
   }
   let source = match option_value(args, index + 2, "--source") {
-    Some(value) => value
+    Some(value) => {
+      if value.is_empty() {
+        println("error: --source must not be empty")
+        return 2
+      }
+      value
+    }
     None => {
       println("error: --source is required")
       return 2
     }
   }
   let builder = match option_value(args, index + 2, "--builder") {
-    Some(value) => value
+    Some(value) => {
+      if value.is_empty() {
+        println("error: --builder must not be empty")
+        return 2
+      }
+      value
+    }
     None => {
       println("error: --builder is required")
       return 2
@@ -262,11 +274,23 @@ fn run_verify(args : Array[String], index : Int) -> Int {
     "sha256", digest, source, builder, trusted_key_ids,
   )
   let policy = match option_value(args, index + 2, "--build-type") {
-    Some(build_type) => policy.with_build_type(build_type)
+    Some(build_type) => {
+      if build_type.is_empty() {
+        println("error: --build-type must not be empty")
+        return 2
+      }
+      policy.with_build_type(build_type)
+    }
     None => policy
   }
   let policy = match option_value(args, index + 2, "--subject") {
-    Some(subject) => policy.with_subject(subject)
+    Some(subject) => {
+      if subject.is_empty() {
+        println("error: --subject must not be empty")
+        return 2
+      }
+      policy.with_subject(subject)
+    }
     None => policy
   }
   let policy = match option_value(args, index + 2, "--min-signatures") {
