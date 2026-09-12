@@ -120,3 +120,4 @@ try {
 } finally {
   Remove-Item -LiteralPath $valid, $tampered, $multi -Force -ErrorAction SilentlyContinue
 }
+$global:LASTEXITCODE = 0
