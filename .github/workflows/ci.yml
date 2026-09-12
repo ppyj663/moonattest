@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+env:
+  MOON_VERSION: "0.1.20260904"
+  MOONC_VERSION: "v0.10.12+1634b282e"
+
 jobs:
   moonbit:
     name: MoonBit (${{ matrix.os }})
@@ -30,6 +34,24 @@ jobs:
         run: |
           Invoke-RestMethod https://cli.moonbitlang.com/install/powershell.ps1 | Invoke-Expression
           (Join-Path $HOME ".moon\bin") | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Verify pinned toolchain
+        shell: pwsh
+        run: |
+          if ($IsWindows) {
+            ./scripts/verify-toolchain.ps1 `
+              -MoonVersion $env:MOON_VERSION `
+              -MooncVersion $env:MOONC_VERSION `
+              -MoonSha256 c6834e7dab16959ade5766f7d2929618782aabea300b37b7e604156bed5dbbea `
+              -MooncSha256 049697e99b95c28a1cef626e5040ed53bbd541f5be08bbed03407213642b52aa `
+              -MoonrunSha256 67ebcfb651191cb2a0490a7c3823cb663d006707323a5669a76d1cdd6be2629d
+          } else {
+            ./scripts/verify-toolchain.ps1 `
+              -MoonVersion $env:MOON_VERSION `
+              -MooncVersion $env:MOONC_VERSION `
+              -MoonSha256 ebf6f42b9c1667cbd1e3bff5cf7fb091f1250a3eea417724e5b1a80de49783a9 `
+              -MooncSha256 a1fe6384cda566b33addc2082ab55845a712bd6b5f8a74244371a92b8afa7b36 `
+              -MoonrunSha256 71f9874f6068577b0ff72b680ec9a2ef0924e53f2a171b3576eeab98c61bdbdb
+          }
       - name: Show toolchain
         shell: pwsh
         run: |

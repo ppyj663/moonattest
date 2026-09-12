@@ -18,6 +18,11 @@ pwsh -File scripts/e2e.ps1
 The library package supports JavaScript and Wasm-GC. The file-oriented CLI uses
 the JavaScript target because its adapter reads local files through Node.js.
 
+CI pins MoonBit `0.1.20260904` and moonc `v0.10.12+1634b282e`. After the official
+installer runs, the workflow checks the exact SHA-256 values of `moon`, `moonc`,
+and `moonrun` on Linux and Windows. An upstream change to the moving download
+channel therefore fails closed until the version and hashes are reviewed.
+
 The end-to-end script creates temporary signed envelopes and artifacts, verifies
 both digest and direct-file inputs plus repeated-`--public-key` multi-signature
 cases, and checks deterministic rejection for unreadable or tampered artifacts,
