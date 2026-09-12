@@ -11,6 +11,7 @@ moon check --target js
 moon check --target wasm-gc
 moon test --target js
 moon test --target wasm-gc
+pwsh -File scripts/coverage.ps1
 moon package --list
 pwsh -File scripts/e2e.ps1
 ```
@@ -22,6 +23,11 @@ CI pins MoonBit `0.1.20260904` and moonc `v0.10.12+1634b282e`. After the officia
 installer runs, the workflow checks the exact SHA-256 values of `moon`, `moonc`,
 and `moonrun` on Linux and Windows. An upstream change to the moving download
 channel therefore fails closed until the version and hashes are reviewed.
+
+The Linux CI job measures branch coverage for `ppyj663/moonattest/src`, enforces
+a 70% minimum, adds the per-file summary to the Actions run summary, and uploads
+the summary plus Cobertura XML as the `moonattest-coverage` artifact. The CLI
+adapter is exercised separately by the end-to-end suite.
 
 The end-to-end script creates temporary signed envelopes and artifacts, verifies
 both digest and direct-file inputs plus repeated-`--public-key` multi-signature
