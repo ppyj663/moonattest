@@ -143,7 +143,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 29 library tests across JS and Wasm-GC plus a
+Version 0.1.0 provides 31 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 
