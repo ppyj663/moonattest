@@ -16,11 +16,15 @@ $tempRoot = [IO.Path]::GetTempPath()
 $valid = Join-Path $tempRoot ("moonattest-valid-" + [Guid]::NewGuid().ToString("N") + ".json")
 $tampered = Join-Path $tempRoot ("moonattest-tampered-" + [Guid]::NewGuid().ToString("N") + ".json")
 $multi = Join-Path $tempRoot ("moonattest-multi-" + [Guid]::NewGuid().ToString("N") + ".json")
+$artifact = Join-Path $tempRoot ("moonattest-artifact-" + [Guid]::NewGuid().ToString("N") + ".bin")
+$tamperedArtifact = Join-Path $tempRoot ("moonattest-tampered-artifact-" + [Guid]::NewGuid().ToString("N") + ".bin")
 try {
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $valid
   if ($LASTEXITCODE -ne 0) { throw "demo envelope generation failed" }
   & node (Join-Path $PSScriptRoot "create-demo-envelope.mjs") $multi --two-signatures
   if ($LASTEXITCODE -ne 0) { throw "multi-signature demo envelope generation failed" }
+  [IO.File]::WriteAllBytes($artifact, [Text.Encoding]::UTF8.GetBytes("abc"))
+  [IO.File]::WriteAllBytes($tamperedArtifact, [Text.Encoding]::UTF8.GetBytes("abd"))
   $publicKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
   $backupPublicKey = "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
   $artifactDigest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
@@ -35,6 +39,30 @@ try {
   $verified = & $moon @verifyArgs | Out-String
   if ($LASTEXITCODE -ne 0) { throw "valid verify should exit 0`n$verified" }
   Assert-Contains $verified "VERIFIED" "valid verify output missing VERIFIED"
+
+  $artifactVerified = & $moon run cmd/moonattest verify $valid --artifact $artifact --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 0) { throw "local artifact verify should exit 0`n$artifactVerified" }
+  Assert-Contains $artifactVerified "VERIFIED" "local artifact verify output missing VERIFIED"
+
+  $artifactMismatch = & $moon run cmd/moonattest verify $valid --artifact $tamperedArtifact --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 1) { throw "tampered local artifact should exit 1" }
+  Assert-Contains $artifactMismatch "DIGEST_MISMATCH" "tampered local artifact was not rejected"
+
+  $ambiguousDigest = & $moon run cmd/moonattest verify $valid --digest $artifactDigest --artifact $artifact --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "digest and artifact together should exit 2" }
+  Assert-Contains $ambiguousDigest "mutually exclusive" "digest and artifact combination was not rejected"
+
+  $missingDigest = & $moon run cmd/moonattest verify $valid --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "missing digest and artifact should exit 2" }
+  Assert-Contains $missingDigest "either --digest or --artifact is required" "missing digest and artifact was not rejected"
+
+  $unreadableArtifact = & $moon run cmd/moonattest verify $valid --artifact "$artifact.missing" --source https://github.com/example/project --builder https://builder.example/id --public-key "release-key=$publicKey" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "unreadable artifact should exit 2" }
+  Assert-Contains $unreadableArtifact "cannot read" "unreadable artifact was not rejected"
+
+  $unreadableEnvelope = & $moon run cmd/moonattest inspect "$valid.missing" | Out-String
+  if ($LASTEXITCODE -ne 2) { throw "unreadable envelope should exit 2" }
+  Assert-Contains $unreadableEnvelope "cannot read" "unreadable envelope was not rejected"
 
   $multiVerifyArgs = @(
     "run", "cmd/moonattest", "verify", $multi,
@@ -116,8 +144,8 @@ try {
   $invalid = & $moon run cmd/moonattest inspect fixtures/dsse/invalid-base64.json | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid base64 inspect should exit 2" }
   Assert-Contains $invalid "invalid DSSE envelope" "invalid base64 was not reported"
-  Write-Output "E2E PASS: inspect, single/multi-signature verify, policy/tamper failures"
+  Write-Output "E2E PASS: inspect, digest/artifact verify, multi-signature, policy/tamper failures"
 } finally {
-  Remove-Item -LiteralPath $valid, $tampered, $multi -Force -ErrorAction SilentlyContinue
+  Remove-Item -LiteralPath $valid, $tampered, $multi, $artifact, $tamperedArtifact -Force -ErrorAction SilentlyContinue
 }
 $global:LASTEXITCODE = 0

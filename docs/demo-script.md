@@ -1,7 +1,8 @@
 # Local demonstration
 
-Run `pwsh -File scripts/demo.ps1` to generate a disposable signed envelope,
-inspect its DSSE metadata, and verify it against an explicit local policy.
+Run `pwsh -File scripts/demo.ps1` to generate a disposable signed envelope and
+artifact, inspect the DSSE metadata, and verify the artifact bytes against an
+explicit local policy.
 
 Run `pwsh -File scripts/e2e.ps1` to exercise valid verification, policy
 mismatches, signature tampering, and malformed Base64. The script asserts the

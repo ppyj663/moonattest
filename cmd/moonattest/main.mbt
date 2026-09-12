@@ -5,7 +5,18 @@ extern "js" fn read_text_file(path : String) -> String? =
   #|     const fs = process.getBuiltinModule('node:fs');
   #|     return fs.readFileSync(path, 'utf8');
   #|   } catch (_) {
-  #|     return null;
+  #|     return undefined;
+  #|   }
+  #| }
+
+///|
+extern "js" fn read_binary_file_base64(path : String) -> String? =
+  #| function(path) {
+  #|   try {
+  #|     const fs = process.getBuiltinModule('node:fs');
+  #|     return fs.readFileSync(path).toString('base64');
+  #|   } catch (_) {
+  #|     return undefined;
   #|   }
   #| }
 
@@ -21,7 +32,7 @@ fn usage() -> Unit {
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
   println(
-    "  moonattest verify <envelope.json> --digest <hex> --source <uri> --builder <id> --public-key <keyid=hex>... [--subject <name>] [--min-signatures <n>] [--json]",
+    "  moonattest verify <envelope.json> (--digest <hex> | --artifact <path>) --source <uri> --builder <id> --public-key <keyid=hex>... [--subject <name>] [--min-signatures <n>] [--json]",
   )
 }
 
@@ -177,16 +188,40 @@ fn run_verify(args : Array[String], index : Int) -> Int {
     return 2
   }
   let path = args[index + 1]
-  let digest = match option_value(args, index + 2, "--digest") {
-    Some(value) => value
-    None => {
-      println("error: --digest is required")
+  let digest_option = option_value(args, index + 2, "--digest")
+  let artifact_option = option_value(args, index + 2, "--artifact")
+  if digest_option is Some(_) && artifact_option is Some(_) {
+    println("error: --digest and --artifact are mutually exclusive")
+    return 2
+  }
+  let digest = match (digest_option, artifact_option) {
+    (Some(value), None) => {
+      if !@attest.is_valid_sha256_digest(value) {
+        println("error: --digest must be a 32-byte hexadecimal SHA-256 value")
+        return 2
+      }
+      value
+    }
+    (None, Some(artifact_path)) =>
+      match read_binary_file_base64(artifact_path) {
+        Some(encoded) => {
+          let bytes = @base64.decode(encoded.to_string_view()) catch {
+            _ => {
+              println("error: cannot decode " + artifact_path)
+              return 2
+            }
+          }
+          @attest.sha256_hex(bytes)
+        }
+        None => {
+          println("error: cannot read " + artifact_path)
+          return 2
+        }
+      }
+    _ => {
+      println("error: either --digest or --artifact is required")
       return 2
     }
-  }
-  if !@attest.is_valid_sha256_digest(digest) {
-    println("error: --digest must be a 32-byte hexadecimal SHA-256 value")
-    return 2
   }
   let source = match option_value(args, index + 2, "--source") {
     Some(value) => value

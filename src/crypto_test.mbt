@@ -1,4 +1,12 @@
 ///|
+test "hash artifact bytes with SHA-256" {
+  assert_eq(
+    @moonattest.sha256_hex(b"abc"),
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  )
+}
+
+///|
 test "accept a 32-byte hexadecimal SHA-256 digest" {
   assert_eq(
     @moonattest.is_valid_sha256_digest(

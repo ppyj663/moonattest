@@ -31,6 +31,20 @@ Run the complete disposable demo:
 pwsh -File scripts/demo.ps1
 ```
 
+Verify a local artifact directly. MoonAttest reads the file as bytes and checks
+its SHA-256 digest against the signed Statement:
+
+```powershell
+moon run cmd/moonattest verify envelope.json `
+  --artifact release.tar `
+  --source https://github.com/example/project `
+  --builder https://builder.example/id `
+  --public-key release-key=<release-public-key-hex>
+```
+
+Use exactly one of `--artifact <path>` or `--digest <hex>`. The latter remains
+available when another trusted component already calculated the digest.
+
 For a policy that requires signatures from two different trusted keys, repeat
 `--public-key` and set the threshold explicitly:
 
@@ -46,8 +60,8 @@ moon run cmd/moonattest verify envelope.json `
 
 Each public key value must be a 32-byte Ed25519 public key encoded as hex.
 Malformed key configuration exits with code `2` before verification starts.
-The `--digest` value must likewise be a complete 32-byte SHA-256 digest in
-hexadecimal form.
+When supplied, the `--digest` value must likewise be a complete 32-byte SHA-256
+digest in hexadecimal form.
 
 ## Library API
 
@@ -122,7 +136,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 24 library tests across JS and Wasm-GC plus a
+Version 0.1.0 provides 29 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 
