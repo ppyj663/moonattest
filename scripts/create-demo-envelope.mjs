@@ -18,6 +18,7 @@ const statement = {
   predicateType: "https://slsa.dev/provenance/v1",
   predicate: {
     buildDefinition: {
+      buildType: "https://example.com/build/v1",
       externalParameters: {
         repository: { url: "https://github.com/example/project" },
       },

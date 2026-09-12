@@ -13,7 +13,12 @@ fn slsa_required_string(
 ) -> Result[String, SlsaError] {
   match object.get(field) {
     None => Err(SlsaMissingField(field))
-    Some(String(value)) => Ok(value)
+    Some(String(value)) =>
+      if value.is_empty() {
+        Err(SlsaMissingField(field))
+      } else {
+        Ok(value)
+      }
     Some(_) => Err(SlsaInvalidField(field))
   }
 }
@@ -31,7 +36,8 @@ fn slsa_object(
 }
 
 ///|
-/// Extract the builder identity and source repository from a SLSA v1 predicate.
+/// Extract the builder identity, source repository, and build type from a SLSA
+/// v1 predicate.
 /// The source reader accepts both the common `repository.url` shape and the
 /// SLSA-compatible `source.uri` shape used by some generators.
 pub fn parse_slsa_provenance(
@@ -56,6 +62,14 @@ pub fn parse_slsa_provenance(
   }
   let build_definition = match slsa_object(predicate, "buildDefinition") {
     Ok(value) => value
+    Err(error) => return Err(error)
+  }
+  let build_type = match slsa_required_string(build_definition, "buildType") {
+    Ok(value) => value
+    Err(SlsaMissingField(_)) =>
+      return Err(SlsaMissingField("buildDefinition.buildType"))
+    Err(SlsaInvalidField(_)) =>
+      return Err(SlsaInvalidField("buildDefinition.buildType"))
     Err(error) => return Err(error)
   }
   let external_parameters = match
@@ -104,5 +118,5 @@ pub fn parse_slsa_provenance(
           )
       }
   }
-  Ok(Provenance::new(builder_id, source_uri))
+  Ok(Provenance::new(builder_id, source_uri, build_type))
 }

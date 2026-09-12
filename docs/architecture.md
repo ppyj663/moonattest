@@ -26,7 +26,8 @@ small set of flags, prints diagnostics, and sets the process exit code.
    byte lengths, not MoonBit UTF-16 code-unit lengths.
 3. `parse_statement` checks the in-toto v1 type, non-empty subjects, digest
    fields, SLSA predicate type, and retains the predicate object.
-4. `parse_slsa_provenance` extracts `runDetails.builder.id` and either
+4. `parse_slsa_provenance` requires `buildDefinition.buildType`, extracts
+   `runDetails.builder.id`, and reads either
    `buildDefinition.externalParameters.repository.url` or `.source.uri`.
 5. `verify_envelope` applies policy checks and verifies each trusted signature.
    A report is successful only when there are no findings and at least one

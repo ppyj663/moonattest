@@ -10,7 +10,7 @@ test "public model constructors preserve verification inputs" {
     "artifact.bin", "sha256", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
   )
   let provenance = @moonattest.Provenance::new(
-    "https://builder.example/id", "https://github.com/example/project",
+    "https://builder.example/id", "https://github.com/example/project", "https://example.com/build/v1",
   )
   let policy = @moonattest.Policy::new(
     "sha256",
@@ -25,6 +25,7 @@ test "public model constructors preserve verification inputs" {
   assert_eq(envelope.payload_type, "application/vnd.in-toto+json")
   assert_eq(subject.digest_algorithm, "sha256")
   assert_eq(provenance.builder_id, "https://builder.example/id")
+  assert_eq(provenance.build_type, "https://example.com/build/v1")
   assert_eq(
     policy.expected_digest,
     "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",

@@ -49,11 +49,16 @@ pub fn Subject::new(
 pub(all) struct Provenance {
   builder_id : String
   source_uri : String
+  build_type : String
 }
 
 ///|
-pub fn Provenance::new(builder_id : String, source_uri : String) -> Provenance {
-  { builder_id, source_uri, }
+pub fn Provenance::new(
+  builder_id : String,
+  source_uri : String,
+  build_type : String,
+) -> Provenance {
+  { builder_id, source_uri, build_type, }
 }
 
 ///|
