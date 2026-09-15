@@ -27,12 +27,37 @@ pub fn BatchEntry::new(
 /// The verification result for one named batch entry.
 pub(all) struct BatchResult {
   name : String
+  digest_algorithm : String
+  expected_digest : String
+  artifact_digest : String
   report : Report
 }
 
 ///|
 pub fn BatchResult::new(name : String, report : Report) -> BatchResult {
-  { name, report, }
+  {
+    name,
+    digest_algorithm: "",
+    expected_digest: "",
+    artifact_digest: "",
+    report,
+  }
+}
+
+///|
+/// Build a result that retains non-secret digest evidence from its policy.
+pub fn BatchResult::from_policy(
+  name : String,
+  policy : Policy,
+  report : Report,
+) -> BatchResult {
+  {
+    name,
+    digest_algorithm: policy.digest_algorithm,
+    expected_digest: policy.expected_digest,
+    artifact_digest: policy.artifact_digest,
+    report,
+  }
 }
 
 ///|
@@ -87,7 +112,9 @@ pub fn verify_batch(
     } else {
       failed += 1
     }
-    results.push(BatchResult::new(entry.name, report))
+    results.push(
+      BatchResult::from_policy(entry.name, entry.policy_document.policy, report),
+    )
   }
   Ok(BatchReport::new(failed == 0, results, passed, failed))
 }

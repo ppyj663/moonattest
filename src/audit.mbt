@@ -15,6 +15,12 @@ pub fn batch_report_json(report : BatchReport) -> String {
     }
     output.write_string("{\"name\":")
     output.write_string(result.name.escape())
+    output.write_string(",\"digestAlgorithm\":")
+    output.write_string(result.digest_algorithm.escape())
+    output.write_string(",\"expectedDigest\":")
+    output.write_string(result.expected_digest.escape())
+    output.write_string(",\"artifactDigest\":")
+    output.write_string(result.artifact_digest.escape())
     output.write_string(",\"ok\":")
     output.write_string(if result.report.ok { "true" } else { "false" })
     output.write_string(",\"findings\":[")
@@ -57,6 +63,18 @@ pub fn batch_report_markdown(report : BatchReport) -> String {
         " — FAIL\n\n"
       },
     )
+    if result.expected_digest != "" {
+      output.write_string("- Policy digest (`")
+      output.write_string(result.digest_algorithm)
+      output.write_string("`): `")
+      output.write_string(result.expected_digest)
+      output.write_string("`\n")
+    }
+    if result.artifact_digest != "" {
+      output.write_string("- Artifact digest (`sha256`): `")
+      output.write_string(result.artifact_digest)
+      output.write_string("`\n")
+    }
     if result.report.findings.is_empty() {
       output.write_string("No findings.\n")
     } else {
