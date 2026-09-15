@@ -3,6 +3,7 @@
   "entries": [
     {
       "name": "rejected-release",
+      "artifact": "artifact.txt",
       "envelope": "release-envelope.json",
       "policy": "rejected-policy.json"
     }

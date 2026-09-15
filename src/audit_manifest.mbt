@@ -19,6 +19,7 @@ pub suberror AuditManifestError {
 /// relative to the manifest file; the pure library retains them unchanged.
 pub(all) struct AuditManifestEntry {
   name : String
+  artifact_path : String
   envelope_path : String
   policy_path : String
 }
@@ -26,10 +27,11 @@ pub(all) struct AuditManifestEntry {
 ///|
 pub fn AuditManifestEntry::new(
   name : String,
+  artifact_path : String,
   envelope_path : String,
   policy_path : String,
 ) -> AuditManifestEntry {
-  { name, envelope_path, policy_path, }
+  { name, artifact_path, envelope_path, policy_path, }
 }
 
 ///|
@@ -102,6 +104,11 @@ fn parse_audit_manifest_entry(
     Ok(value) => value
     Err(error) => return Err(error)
   }
+  let artifact_path = match
+    audit_manifest_entry_string(object, index, "artifact") {
+    Ok(value) => value
+    Err(error) => return Err(error)
+  }
   let envelope_path = match
     audit_manifest_entry_string(object, index, "envelope") {
     Ok(value) => value
@@ -111,13 +118,13 @@ fn parse_audit_manifest_entry(
     Ok(value) => value
     Err(error) => return Err(error)
   }
-  Ok(AuditManifestEntry::new(name, envelope_path, policy_path))
+  Ok(AuditManifestEntry::new(name, artifact_path, envelope_path, policy_path))
 }
 
 ///|
 /// Parse an audit manifest. Version 1 contains a non-empty `entries` array;
-/// every entry requires a unique non-empty name, envelope path, and policy path.
-/// Unknown fields are ignored for forward compatibility.
+/// every entry requires a unique non-empty name plus artifact, envelope, and
+/// policy paths. Unknown fields are ignored for forward compatibility.
 pub fn parse_audit_manifest(
   text : StringView,
 ) -> Result[AuditManifest, AuditManifestError] {

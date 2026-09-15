@@ -2,8 +2,22 @@ import { createPrivateKey, sign } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
 const args = process.argv.slice(2);
-const output = args.find((arg) => !arg.startsWith("--"));
 const twoSignatures = args.includes("--two-signatures");
+const digestIndex = args.indexOf("--digest");
+let output;
+for (let index = 0; index < args.length; index += 1) {
+  if (args[index] === "--digest") {
+    index += 1;
+  } else if (args[index] !== "--two-signatures" && output === undefined) {
+    output = args[index];
+  }
+}
+const artifactDigest = digestIndex >= 0
+  ? args[digestIndex + 1]
+  : "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+if (!/^[0-9a-fA-F]{64}$/.test(artifactDigest ?? "")) {
+  throw new Error("--digest requires a 32-byte hexadecimal SHA-256 value");
+}
 const payloadType = "application/vnd.in-toto+json";
 const statement = {
   _type: "https://in-toto.io/Statement/v1",
@@ -11,7 +25,7 @@ const statement = {
     {
       name: "artifact.bin",
       digest: {
-        sha256: "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        sha256: artifactDigest.toLowerCase(),
       },
     },
   ],

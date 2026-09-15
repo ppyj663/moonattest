@@ -139,6 +139,25 @@ fn read_policy_document(path : String) -> @attest.PolicyDocument? {
 }
 
 ///|
+fn read_artifact_digest(path : String) -> String? {
+  match read_binary_file_base64(path) {
+    Some(encoded) => {
+      let bytes = @base64.decode(encoded.to_string_view()) catch {
+        _ => {
+          println("error: cannot decode " + path)
+          return None
+        }
+      }
+      Some(@attest.sha256_hex(bytes))
+    }
+    None => {
+      println("error: cannot read " + path)
+      None
+    }
+  }
+}
+
+///|
 fn run_inspect(args : Array[String], index : Int) -> Int {
   guard index + 1 < args.length() else {
     usage()
@@ -211,6 +230,10 @@ fn run_audit(args : Array[String], index : Int) -> Int {
   }
   let entries : Array[@attest.BatchEntry] = []
   for entry in manifest.entries {
+    let artifact_path = resolve_manifest_path(
+      manifest_path,
+      entry.artifact_path,
+    )
     let envelope_path = resolve_manifest_path(
       manifest_path,
       entry.envelope_path,
@@ -224,7 +247,15 @@ fn run_audit(args : Array[String], index : Int) -> Int {
       Some(value) => value
       None => return 2
     }
-    entries.push(@attest.BatchEntry::new(entry.name, envelope, policy_document))
+    let artifact_digest = match read_artifact_digest(artifact_path) {
+      Some(value) => value
+      None => return 2
+    }
+    let bound_policy = @attest.PolicyDocument::new(
+      policy_document.policy.with_expected_digest(artifact_digest),
+      policy_document.trusted_keys,
+    )
+    entries.push(@attest.BatchEntry::new(entry.name, envelope, bound_policy))
   }
   let report = match @attest.verify_batch(entries) {
     Ok(value) => value
@@ -322,20 +353,9 @@ fn run_verify(args : Array[String], index : Int) -> Int {
       value
     }
     (None, Some(artifact_path)) =>
-      match read_binary_file_base64(artifact_path) {
-        Some(encoded) => {
-          let bytes = @base64.decode(encoded.to_string_view()) catch {
-            _ => {
-              println("error: cannot decode " + artifact_path)
-              return 2
-            }
-          }
-          @attest.sha256_hex(bytes)
-        }
-        None => {
-          println("error: cannot read " + artifact_path)
-          return 2
-        }
+      match read_artifact_digest(artifact_path) {
+        Some(value) => value
+        None => return 2
       }
     _ => {
       println("error: either --digest or --artifact is required")

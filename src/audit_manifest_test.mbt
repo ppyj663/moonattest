@@ -3,8 +3,8 @@ test "parse a versioned audit manifest in input order" {
   let text = "{" +
     "\"version\":1," +
     "\"entries\":[" +
-    "{\"name\":\"linux\",\"envelope\":\"linux.intoto.jsonl\",\"policy\":\"release-policy.json\"}," +
-    "{\"name\":\"wasm\",\"envelope\":\"wasm.intoto.jsonl\",\"policy\":\"release-policy.json\"}" +
+    "{\"name\":\"linux\",\"artifact\":\"release-linux.tar\",\"envelope\":\"linux.intoto.jsonl\",\"policy\":\"release-policy.json\"}," +
+    "{\"name\":\"wasm\",\"artifact\":\"release.wasm\",\"envelope\":\"wasm.intoto.jsonl\",\"policy\":\"release-policy.json\"}" +
     "]}"
   let result = parse_audit_manifest(text.to_string_view())
   guard result is Ok(manifest) else {
@@ -13,6 +13,7 @@ test "parse a versioned audit manifest in input order" {
   assert_eq(manifest.version, 1)
   assert_eq(manifest.entries.length(), 2)
   assert_eq(manifest.entries[0].name, "linux")
+  assert_eq(manifest.entries[0].artifact_path, "release-linux.tar")
   assert_eq(manifest.entries[0].envelope_path, "linux.intoto.jsonl")
   assert_eq(manifest.entries[1].name, "wasm")
   assert_eq(manifest.entries[1].policy_path, "release-policy.json")
@@ -21,7 +22,7 @@ test "parse a versioned audit manifest in input order" {
 ///|
 test "reject an unsupported audit manifest version" {
   let result = parse_audit_manifest(
-    "{\"version\":2,\"entries\":[{\"name\":\"release\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}]}".to_string_view(),
+    "{\"version\":2,\"entries\":[{\"name\":\"release\",\"artifact\":\"a.bin\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}]}".to_string_view(),
   )
   guard result is Err(AuditManifestUnsupportedVersion(2)) else {
     fail("unsupported version was not diagnosed")
@@ -31,7 +32,7 @@ test "reject an unsupported audit manifest version" {
 ///|
 test "reject a fractional audit manifest version" {
   let result = parse_audit_manifest(
-    "{\"version\":1.5,\"entries\":[{\"name\":\"release\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}]}".to_string_view(),
+    "{\"version\":1.5,\"entries\":[{\"name\":\"release\",\"artifact\":\"a.bin\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}]}".to_string_view(),
   )
   guard result is Err(AuditManifestInvalidField("version")) else {
     fail("fractional version was not diagnosed")
@@ -52,8 +53,8 @@ test "reject an empty audit manifest" {
 test "reject duplicate audit entry names" {
   let result = parse_audit_manifest(
     ("{\"version\":1,\"entries\":[" +
-    "{\"name\":\"release\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}," +
-    "{\"name\":\"release\",\"envelope\":\"b.json\",\"policy\":\"p.json\"}" +
+    "{\"name\":\"release\",\"artifact\":\"a.bin\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}," +
+    "{\"name\":\"release\",\"artifact\":\"b.bin\",\"envelope\":\"b.json\",\"policy\":\"p.json\"}" +
     "]}").to_string_view(),
   )
   guard result is Err(AuditManifestDuplicateName("release")) else {
@@ -64,9 +65,19 @@ test "reject duplicate audit entry names" {
 ///|
 test "reject an empty audit entry path" {
   let result = parse_audit_manifest(
-    "{\"version\":1,\"entries\":[{\"name\":\"release\",\"envelope\":\"\",\"policy\":\"p.json\"}]}".to_string_view(),
+    "{\"version\":1,\"entries\":[{\"name\":\"release\",\"artifact\":\"a.bin\",\"envelope\":\"\",\"policy\":\"p.json\"}]}".to_string_view(),
   )
   guard result is Err(AuditManifestEmptyEntryField(0, "envelope")) else {
     fail("empty envelope path was not diagnosed")
+  }
+}
+
+///|
+test "require an artifact path for every audit entry" {
+  let result = parse_audit_manifest(
+    "{\"version\":1,\"entries\":[{\"name\":\"release\",\"envelope\":\"a.json\",\"policy\":\"p.json\"}]}".to_string_view(),
+  )
+  guard result is Err(AuditManifestMissingEntryField(0, "artifact")) else {
+    fail("missing artifact path was not diagnosed")
   }
 }
