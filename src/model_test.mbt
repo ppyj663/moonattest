@@ -37,3 +37,20 @@ test "public model constructors preserve verification inputs" {
   )
   assert_eq(report.ok, true)
 }
+
+///|
+test "replace a policy digest without changing other constraints" {
+  let policy = valid_policy()
+    .with_build_type("https://example.com/build/v1")
+    .with_subject("artifact.bin")
+    .with_min_valid_signatures(2)
+  let digest = "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34"
+  let updated = policy.with_expected_digest(digest)
+  assert_eq(updated.expected_digest, digest)
+  assert_eq(updated.digest_algorithm, policy.digest_algorithm)
+  assert_eq(updated.source_uri, policy.source_uri)
+  assert_eq(updated.builder_id, policy.builder_id)
+  assert_eq(updated.build_type, policy.build_type)
+  assert_eq(updated.subject_name, policy.subject_name)
+  assert_eq(updated.min_valid_signatures, policy.min_valid_signatures)
+}

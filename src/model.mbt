@@ -130,6 +130,25 @@ pub fn Policy::with_subject(self : Policy, subject_name : String) -> Policy {
 }
 
 ///|
+/// Return a copy of this policy that expects the supplied artifact digest.
+/// This is used by file-oriented adapters after hashing the local artifact.
+pub fn Policy::with_expected_digest(
+  self : Policy,
+  expected_digest : String,
+) -> Policy {
+  {
+    digest_algorithm: self.digest_algorithm,
+    expected_digest,
+    source_uri: self.source_uri,
+    builder_id: self.builder_id,
+    build_type: self.build_type,
+    trusted_key_ids: self.trusted_key_ids,
+    subject_name: self.subject_name,
+    min_valid_signatures: self.min_valid_signatures,
+  }
+}
+
+///|
 /// Return a copy of this policy that requires an exact SLSA build type.
 /// An empty value disables the build-type constraint.
 pub fn Policy::with_build_type(self : Policy, build_type : String) -> Policy {
