@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "name": "example-release",
+      "envelope": "release-envelope.json",
+      "policy": "release-policy.json"
+    }
+  ]
+}

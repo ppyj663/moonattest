@@ -1,0 +1,10 @@
+{
+  "payloadType": "application/vnd.in-toto+json",
+  "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJzdWJqZWN0IjpbeyJuYW1lIjoiYXJ0aWZhY3QuYmluIiwiZGlnZXN0Ijp7InNoYTI1NiI6ImJhNzgxNmJmOGYwMWNmZWE0MTQxNDBkZTVkYWUyMjIzYjAwMzYxYTM5NjE3N2E5Y2I0MTBmZjYxZjIwMDE1YWQifX1dLCJwcmVkaWNhdGVUeXBlIjoiaHR0cHM6Ly9zbHNhLmRldi9wcm92ZW5hbmNlL3YxIiwicHJlZGljYXRlIjp7ImJ1aWxkRGVmaW5pdGlvbiI6eyJidWlsZFR5cGUiOiJodHRwczovL2V4YW1wbGUuY29tL2J1aWxkL3YxIiwiZXh0ZXJuYWxQYXJhbWV0ZXJzIjp7InJlcG9zaXRvcnkiOnsidXJsIjoiaHR0cHM6Ly9naXRodWIuY29tL2V4YW1wbGUvcHJvamVjdCJ9fX0sInJ1bkRldGFpbHMiOnsiYnVpbGRlciI6eyJpZCI6Imh0dHBzOi8vYnVpbGRlci5leGFtcGxlL2lkIn19fX0=",
+  "signatures": [
+    {
+      "keyid": "release-key",
+      "sig": "PKvcSuD7OYY+e47vUaBHwCb/O7/Q9G1V+dinytBgkG+lXbpsMRmbesXArlOnUWpqvtW1FbVZQgElbKVozNYIDg=="
+    }
+  ]
+}

@@ -12,6 +12,31 @@ $inspect = & $moon run cmd/moonattest inspect fixtures/dsse/valid-envelope.json 
 if ($LASTEXITCODE -ne 0) { throw "inspect should exit 0" }
 Assert-Contains $inspect "status: parsed" "inspect output missing parsed status"
 
+$auditJson = & $moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format json | Out-String
+if ($LASTEXITCODE -ne 0) { throw "valid batch audit should exit 0`n$auditJson" }
+Assert-Contains $auditJson '"ok":true' "batch audit JSON missing ok=true"
+Assert-Contains $auditJson '"name":"example-release"' "batch audit JSON missing entry name"
+Assert-Contains $auditJson '"passed":1' "batch audit JSON missing pass count"
+
+$auditMarkdown = & $moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format markdown | Out-String
+if ($LASTEXITCODE -ne 0) { throw "valid Markdown audit should exit 0`n$auditMarkdown" }
+Assert-Contains $auditMarkdown "# MoonAttest batch audit" "Markdown audit missing title"
+Assert-Contains $auditMarkdown "## example-release — PASS" "Markdown audit missing passing entry"
+
+$auditText = & $moon run cmd/moonattest audit fixtures/audit/release-manifest.json | Out-String
+if ($LASTEXITCODE -ne 0) { throw "valid text audit should exit 0`n$auditText" }
+Assert-Contains $auditText "summary: 1 passed, 0 failed" "text audit missing summary"
+Assert-Contains $auditText "AUDIT PASSED" "text audit missing final status"
+
+$rejectedAudit = & $moon run cmd/moonattest audit fixtures/audit/rejected-manifest.json --format json | Out-String
+if ($LASTEXITCODE -ne 1) { throw "rejected batch audit should exit 1`n$rejectedAudit" }
+Assert-Contains $rejectedAudit '"ok":false' "rejected audit JSON missing ok=false"
+Assert-Contains $rejectedAudit '"code":"BUILD_TYPE_MISMATCH"' "rejected audit missing policy finding"
+
+$invalidAuditFormat = & $moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format yaml | Out-String
+if ($LASTEXITCODE -ne 2) { throw "invalid audit format should exit 2" }
+Assert-Contains $invalidAuditFormat "--format must be text, json, or markdown" "invalid audit format was not diagnosed"
+
 $tempRoot = [IO.Path]::GetTempPath()
 $valid = Join-Path $tempRoot ("moonattest-valid-" + [Guid]::NewGuid().ToString("N") + ".json")
 $tampered = Join-Path $tempRoot ("moonattest-tampered-" + [Guid]::NewGuid().ToString("N") + ".json")
@@ -168,7 +193,7 @@ try {
   $invalid = & $moon run cmd/moonattest inspect fixtures/dsse/invalid-base64.json | Out-String
   if ($LASTEXITCODE -ne 2) { throw "invalid base64 inspect should exit 2" }
   Assert-Contains $invalid "invalid DSSE envelope" "invalid base64 was not reported"
-  Write-Output "E2E PASS: inspect, digest/artifact verify, multi-signature, policy/tamper failures"
+  Write-Output "E2E PASS: inspect, batch audit formats, digest/artifact verify, multi-signature, policy/tamper failures"
 } finally {
   Remove-Item -LiteralPath $valid, $tampered, $multi, $artifact, $tamperedArtifact -Force -ErrorAction SilentlyContinue
 }

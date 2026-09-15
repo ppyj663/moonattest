@@ -21,6 +21,16 @@ extern "js" fn read_binary_file_base64(path : String) -> String? =
   #| }
 
 ///|
+extern "js" fn resolve_manifest_path(
+  manifest_path : String,
+  referenced_path : String,
+) -> String =
+  #| function(manifestPath, referencedPath) {
+  #|   const path = process.getBuiltinModule('node:path');
+  #|   return path.resolve(path.dirname(manifestPath), referencedPath);
+  #| }
+
+///|
 extern "js" fn set_process_exit_code(code : Int) -> Unit =
   #| function(code) {
   #|   if (typeof process !== 'undefined') process.exitCode = code;
@@ -31,6 +41,7 @@ fn usage() -> Unit {
   println("MoonAttest - offline DSSE/SLSA verifier")
   println("Usage:")
   println("  moonattest inspect <envelope.json>")
+  println("  moonattest audit <manifest.json> [--format text|json|markdown]")
   println(
     "  moonattest verify <envelope.json> (--digest <hex> | --artifact <path>) --source <uri> --builder <id> --public-key <keyid=hex>... [--build-type <uri>] [--subject <name>] [--min-signatures <n>] [--json]",
   )
@@ -40,7 +51,7 @@ fn usage() -> Unit {
 fn command_index(args : Array[String]) -> (String, Int)? {
   for i = 0; i < args.length(); i = i + 1 {
     match args[i] {
-      "inspect" | "verify" => return Some((args[i], i))
+      "inspect" | "verify" | "audit" => return Some((args[i], i))
       _ => ()
     }
   }
@@ -110,6 +121,24 @@ fn read_envelope(path : String) -> @attest.Envelope? {
 }
 
 ///|
+fn read_policy_document(path : String) -> @attest.PolicyDocument? {
+  let text = match read_text_file(path) {
+    Some(value) => value
+    None => {
+      println("error: cannot read " + path)
+      return None
+    }
+  }
+  match @attest.parse_policy_document(text.to_string_view()) {
+    Ok(value) => Some(value)
+    Err(_) => {
+      println("error: invalid policy document " + path)
+      None
+    }
+  }
+}
+
+///|
 fn run_inspect(args : Array[String], index : Int) -> Int {
   guard index + 1 < args.length() else {
     usage()
@@ -124,6 +153,96 @@ fn run_inspect(args : Array[String], index : Int) -> Int {
   println("signatures: " + envelope.signatures.length().to_string())
   println("status: parsed")
   0
+}
+
+///|
+fn print_batch_report(report : @attest.BatchReport) -> Unit {
+  for result in report.results {
+    let status = if result.report.ok { "PASS" } else { "FAIL" }
+    println(result.name + ": " + status)
+    for finding in result.report.findings {
+      println("  " + finding.code + ": " + finding.message)
+    }
+  }
+  println(
+    "summary: " +
+    report.passed.to_string() +
+    " passed, " +
+    report.failed.to_string() +
+    " failed",
+  )
+  println(if report.ok { "AUDIT PASSED" } else { "AUDIT FAILED" })
+}
+
+///|
+fn run_audit(args : Array[String], index : Int) -> Int {
+  guard index + 1 < args.length() else {
+    usage()
+    return 2
+  }
+  let manifest_path = args[index + 1]
+  let requested_format = option_value(args, index + 2, "--format")
+  if has_flag(args, index + 2, "--format") && requested_format is None {
+    println("error: --format requires text, json, or markdown")
+    return 2
+  }
+  let format = match requested_format {
+    Some(value) => value
+    None => "text"
+  }
+  if format != "text" && format != "json" && format != "markdown" {
+    println("error: --format must be text, json, or markdown")
+    return 2
+  }
+  let manifest_text = match read_text_file(manifest_path) {
+    Some(value) => value
+    None => {
+      println("error: cannot read " + manifest_path)
+      return 2
+    }
+  }
+  let manifest = match
+    @attest.parse_audit_manifest(manifest_text.to_string_view()) {
+    Ok(value) => value
+    Err(_) => {
+      println("error: invalid audit manifest " + manifest_path)
+      return 2
+    }
+  }
+  let entries : Array[@attest.BatchEntry] = []
+  for entry in manifest.entries {
+    let envelope_path = resolve_manifest_path(
+      manifest_path,
+      entry.envelope_path,
+    )
+    let policy_path = resolve_manifest_path(manifest_path, entry.policy_path)
+    let envelope = match read_envelope(envelope_path) {
+      Some(value) => value
+      None => return 2
+    }
+    let policy_document = match read_policy_document(policy_path) {
+      Some(value) => value
+      None => return 2
+    }
+    entries.push(@attest.BatchEntry::new(entry.name, envelope, policy_document))
+  }
+  let report = match @attest.verify_batch(entries) {
+    Ok(value) => value
+    Err(_) => {
+      println("error: audit manifest cannot be verified")
+      return 2
+    }
+  }
+  match format {
+    "json" => println(@attest.batch_report_json(report))
+    "markdown" => println(@attest.batch_report_markdown(report))
+    _ => print_batch_report(report)
+  }
+  if report.ok {
+    0
+  } else {
+    1
+  }
 }
 
 ///|
@@ -328,6 +447,7 @@ fn main {
   match command_index(args) {
     Some(("inspect", index)) => set_process_exit_code(run_inspect(args, index))
     Some(("verify", index)) => set_process_exit_code(run_verify(args, index))
+    Some(("audit", index)) => set_process_exit_code(run_audit(args, index))
     _ => {
       usage()
       set_process_exit_code(2)
