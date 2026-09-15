@@ -111,8 +111,36 @@ reviewed and reused instead of rebuilt from command-line flags:
 ```
 
 `parse_policy_document` validates required fields, key lengths, digests, and
-signature thresholds before a verification starts. Multiple envelopes can then
-be checked together while retaining each finding:
+signature thresholds before a verification starts. For a release gate, list
+the local artifact, signed envelope, and policy in a versioned audit manifest:
+
+```json
+{
+  "version": 1,
+  "entries": [
+    {
+      "name": "example-release",
+      "artifact": "artifact.txt",
+      "envelope": "release-envelope.json",
+      "policy": "release-policy.json"
+    }
+  ]
+}
+```
+
+Paths are resolved relative to the manifest. MoonAttest hashes every local
+artifact, binds the computed digest to its policy, then verifies the signed
+provenance:
+
+```powershell
+moon run cmd/moonattest audit fixtures/audit/release-manifest.json
+moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format json
+moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format markdown
+```
+
+The command returns `0` when the complete batch passes, `1` when verification
+finishes with one or more rejected entries, and `2` for malformed configuration
+or unreadable files. Library callers can assemble the same batch directly:
 
 ```moonbit nocheck
 let policy = @moonattest.parse_policy_document(policy_json).unwrap()
@@ -203,7 +231,7 @@ moon package --list
 pwsh -File scripts/e2e.ps1
 ```
 
-The suite currently contains 44 library test cases exercised on JavaScript and
+The suite currently contains 52 library test cases exercised on JavaScript and
 Wasm-GC, plus an end-to-end tamper suite for the CLI. Coverage summaries and
 Cobertura XML are attached to Linux CI runs. See [Verification](docs/verification.md)
 for the reproducible command matrix.

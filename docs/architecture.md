@@ -1,22 +1,30 @@
 # Architecture
 
 ```text
-DSSE JSON -> envelope parser -> payload Base64/UTF-8
-                              |
-                              v
-                  in-toto Statement parser
-                              |
-                              v
-                 SLSA Provenance field reader
-                              |
-                              v
-                policy + Ed25519 verification -> Report
+local artifact -> SHA-256 -------------------------------+
+                                                           |
+audit manifest -> envelope + policy paths -> batch loader   |
+                                          |                |
+DSSE JSON -> envelope parser -> payload Base64/UTF-8        |
+                              |                            |
+                              v                            |
+                  in-toto Statement parser                 |
+                              |                            |
+                              v                            |
+                 SLSA Provenance field reader              |
+                              |                            |
+                              v                            v
+                policy + Ed25519 verification -> BatchReport
+                                                        |-> text
+                                                        |-> JSON
+                                                        +-> Markdown
 ```
 
 The `src` package contains only pure data transformations and verification. It
 does not read files, inspect the environment, or make network requests. The
-`cmd/moonattest` package is a JS-only adapter that reads a local file, parses a
-small set of flags, prints diagnostics, and sets the process exit code.
+`cmd/moonattest` package is a JS-only adapter that reads local artifacts,
+envelopes, policies, and audit manifests; resolves manifest-relative paths;
+prints diagnostics; and sets the process exit code.
 
 ## Data flow
 
@@ -32,6 +40,10 @@ small set of flags, prints diagnostics, and sets the process exit code.
 5. `verify_envelope` applies policy checks and verifies each trusted signature.
    A report is successful only when there are no findings and at least one
    trusted signature verifies.
+6. `parse_audit_manifest` validates a versioned, non-empty list of uniquely
+   named artifact/envelope/policy path triples.
+7. The CLI hashes each referenced local artifact, binds the digest to its policy,
+   verifies all entries in order, and renders a text, JSON, or Markdown summary.
 
 ## Extension policy
 

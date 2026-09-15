@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Added reusable JSON policy documents with strict key, digest, and threshold validation.
+- Added versioned batch audit manifests with unique named entries.
+- Added `moonattest audit` with text, JSON, and Markdown output.
+- Added manifest-relative loading of local artifacts, DSSE envelopes, and policies.
+- Added automatic SHA-256 binding so batch verification checks the actual files on disk.
+- Added passing, policy-rejected, and tampered-artifact audit fixtures and end-to-end coverage.
+
 ## 0.1.0 - 2026-09-11
 
 - Added typed DSSE envelope parsing and exact UTF-8 PAE construction.

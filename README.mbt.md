@@ -122,6 +122,15 @@ object. Optional `expectedDigest`, `buildType`, `subject`, and
 verification preserves input order, rejects duplicate names, and retains each
 entry's findings for CI or release review.
 
+The file-oriented CLI accepts a versioned audit manifest whose entries contain
+`name`, `artifact`, `envelope`, and `policy` paths. Paths are relative to the
+manifest file. The CLI calculates each local artifact's SHA-256 digest and
+binds it to the parsed policy before verification:
+
+```powershell
+moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format markdown
+```
+
 All parsers return `Result` values, accept unknown extension fields, and reject
 missing or malformed required fields. `verify_envelope` returns stable
 diagnostic codes and never performs network access.
@@ -169,7 +178,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 44 library tests across JS and Wasm-GC plus a
+The current project provides 52 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 
