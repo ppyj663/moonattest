@@ -129,8 +129,9 @@ the local artifact, signed envelope, and policy in a versioned audit manifest:
 ```
 
 Paths are resolved relative to the manifest. MoonAttest hashes every local
-artifact, binds the computed digest to its policy, then verifies the signed
-provenance:
+artifact, preserves any policy-pinned `expectedDigest`, and records the computed
+digest as a separate runtime constraint before verifying signed provenance.
+JSON and Markdown reports include both digest values when available:
 
 ```powershell
 moon run cmd/moonattest audit fixtures/audit/release-manifest.json

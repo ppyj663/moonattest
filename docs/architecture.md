@@ -42,8 +42,9 @@ prints diagnostics; and sets the process exit code.
    trusted signature verifies.
 6. `parse_audit_manifest` validates a versioned, non-empty list of uniquely
    named artifact/envelope/policy path triples.
-7. The CLI hashes each referenced local artifact, binds the digest to its policy,
-   verifies all entries in order, and renders a text, JSON, or Markdown summary.
+7. The CLI hashes each referenced local artifact, retains that runtime digest
+   separately from an optional policy digest, verifies all entries in order, and
+   renders a text, JSON, or Markdown summary with digest evidence.
 
 ## Extension policy
 

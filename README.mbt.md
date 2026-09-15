@@ -125,7 +125,8 @@ entry's findings for CI or release review.
 The file-oriented CLI accepts a versioned audit manifest whose entries contain
 `name`, `artifact`, `envelope`, and `policy` paths. Paths are relative to the
 manifest file. The CLI calculates each local artifact's SHA-256 digest and
-binds it to the parsed policy before verification:
+keeps it separate from the policy's optional `expectedDigest` before
+verification. Audit JSON and Markdown retain both values when available:
 
 ```powershell
 moon run cmd/moonattest audit fixtures/audit/release-manifest.json --format markdown

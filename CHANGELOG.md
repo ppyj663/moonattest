@@ -6,7 +6,8 @@
 - Added versioned batch audit manifests with unique named entries.
 - Added `moonattest audit` with text, JSON, and Markdown output.
 - Added manifest-relative loading of local artifacts, DSSE envelopes, and policies.
-- Added automatic SHA-256 binding so batch verification checks the actual files on disk.
+- Added independent policy and runtime SHA-256 constraints so batch verification checks actual files without discarding pinned policy digests.
+- Added digest evidence fields to JSON and Markdown audit reports.
 - Added passing, policy-rejected, and tampered-artifact audit fixtures and end-to-end coverage.
 
 ## 0.1.0 - 2026-09-11
