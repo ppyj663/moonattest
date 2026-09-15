@@ -4,13 +4,14 @@
 [![MoonBit](https://img.shields.io/badge/MoonBit-0.1.20260904-f2a900)](https://www.moonbitlang.com/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-Offline verification of DSSE-signed, in-toto/SLSA build provenance, written in
-MoonBit.
+Offline verification and release auditing for DSSE-signed, in-toto/SLSA build
+provenance, written in MoonBit.
 
-MoonAttest answers a narrow but important release question: **does this local
-artifact match build evidence signed by keys I trust and the source, builder,
-and build type I expected?** It performs that check deterministically without
-contacting a registry, transparency log, key server, or source host.
+MoonAttest answers a practical release question: **does each local artifact
+match build evidence signed by keys I trust and the source, builder, and build
+type I expected?** It performs that check deterministically, supports reusable
+policy documents and batch audit summaries, and never contacts a registry,
+transparency log, key server, or source host.
 
 > MoonAttest 是一个使用 MoonBit 编写的离线软件供应链证明验证器。它验证
 > DSSE/Ed25519 签名、in-toto Statement 和 SLSA Provenance，并按照调用方明确
@@ -29,6 +30,8 @@ primitive as a portable MoonBit library plus a file-oriented CLI:
 - enforces artifact SHA-256, source, builder, build type, and named-subject
   constraints;
 - supports distinct-key signature thresholds for multi-signature policies;
+- loads reusable JSON policy documents and verifies named batches in input order;
+- renders batch results as deterministic JSON or Markdown audit summaries;
 - emits stable findings and optional machine-readable JSON;
 - remains offline and fail-closed throughout verification.
 
@@ -88,6 +91,43 @@ moon run cmd/moonattest inspect fixtures/dsse/valid-envelope.json
 
 The CLI uses exit code `0` for success, `1` for a completed verification that
 rejects the evidence, and `2` for invalid input or configuration.
+
+## Reusable policies and batch audits
+
+The library accepts a small JSON policy document so release checks can be
+reviewed and reused instead of rebuilt from command-line flags:
+
+```json
+{
+  "source": "https://github.com/example/project",
+  "builder": "https://builder.example/id",
+  "expectedDigest": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  "buildType": "https://example.com/build/v1",
+  "trustedKeys": {
+    "release-key": "<32-byte-ed25519-public-key-hex>"
+  },
+  "minValidSignatures": 1
+}
+```
+
+`parse_policy_document` validates required fields, key lengths, digests, and
+signature thresholds before a verification starts. Multiple envelopes can then
+be checked together while retaining each finding:
+
+```moonbit nocheck
+let policy = @moonattest.parse_policy_document(policy_json).unwrap()
+let entries = [
+  @moonattest.BatchEntry::new("release", envelope, policy),
+]
+let audit = @moonattest.verify_batch(entries).unwrap()
+let json = @moonattest.batch_report_json(audit)
+let markdown = @moonattest.batch_report_markdown(audit)
+```
+
+The batch API rejects empty or duplicate names, keeps input order, and reports
+both aggregate pass/fail counts and per-entry diagnostic codes. This makes the
+same core result usable as a CI gate, a release attachment, or a human review
+note.
 
 ## Verification flow
 
@@ -163,7 +203,7 @@ moon package --list
 pwsh -File scripts/e2e.ps1
 ```
 
-The suite currently contains 31 library test cases exercised on JavaScript and
+The suite currently contains 44 library test cases exercised on JavaScript and
 Wasm-GC, plus an end-to-end tamper suite for the CLI. Coverage summaries and
 Cobertura XML are attached to Linux CI runs. See [Verification](docs/verification.md)
 for the reproducible command matrix.

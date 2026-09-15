@@ -1,9 +1,10 @@
 # MoonAttest
 
-MoonAttest is an offline MoonBit verifier for signed software build evidence.
-It parses a DSSE v1 envelope, checks an in-toto Statement v1 carrying SLSA
-Provenance v1, verifies Ed25519 signatures, and applies an explicit trust policy
-for artifact digest, source repository, builder identity, and trusted key IDs.
+MoonAttest is an offline MoonBit verifier and release-audit library for signed
+software build evidence. It parses a DSSE v1 envelope, checks an in-toto
+Statement v1 carrying SLSA Provenance v1, verifies Ed25519 signatures, and
+applies an explicit trust policy for artifact digest, source repository,
+builder identity, and trusted key IDs.
 
 The project targets cloud-native and edge workloads that need a small,
 reusable security primitive without a network call.
@@ -96,6 +97,31 @@ let report = @moonattest.verify_envelope(
 let release_policy = policy.with_subject("release.tar")
 ```
 
+Reusable policy documents and batch audit summaries are available from the same
+package:
+
+```moonbit nocheck
+///|
+let policy_document = @moonattest.parse_policy_document(policy_json).unwrap()
+
+///|
+let audit = @moonattest.verify_batch([
+  @moonattest.BatchEntry::new("release", envelope.unwrap(), policy_document),
+]).unwrap()
+
+///|
+let audit_json = @moonattest.batch_report_json(audit)
+
+///|
+let audit_markdown = @moonattest.batch_report_markdown(audit)
+```
+
+The policy JSON requires `source`, `builder`, and a non-empty `trustedKeys`
+object. Optional `expectedDigest`, `buildType`, `subject`, and
+`minValidSignatures` fields map directly to the `Policy` constraints. Batch
+verification preserves input order, rejects duplicate names, and retains each
+entry's findings for CI or release review.
+
 All parsers return `Result` values, accept unknown extension fields, and reject
 missing or malformed required fields. `verify_envelope` returns stable
 diagnostic codes and never performs network access.
@@ -143,7 +169,7 @@ portable and deterministic.
 
 ## Project status
 
-Version 0.1.0 provides 31 library tests across JS and Wasm-GC plus a
+Version 0.1.0 provides 44 library tests across JS and Wasm-GC plus a
 PowerShell/Node end-to-end tamper demonstration. See `docs/verification.md` for
 the reproducible command matrix.
 
