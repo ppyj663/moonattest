@@ -63,7 +63,7 @@ try {
   $tamperedAudit | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $tamperedAuditManifest -Encoding utf8
   $tamperedAuditResult = & $moon run cmd/moonattest audit $tamperedAuditManifest --format json | Out-String
   if ($LASTEXITCODE -ne 1) { throw "tampered batch artifact should exit 1`n$tamperedAuditResult" }
-  Assert-Contains $tamperedAuditResult '"code":"DIGEST_MISMATCH"' "tampered batch artifact was not rejected"
+  Assert-Contains $tamperedAuditResult '"code":"ARTIFACT_DIGEST_MISMATCH"' "tampered batch artifact was not rejected"
   $publicKey = "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a"
   $backupPublicKey = "03a107bff3ce10be1d70dd18e74bc09967e4d6309ba50d5f1ddc8664125531b8"
   $artifactDigest = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"

@@ -85,6 +85,7 @@ pub fn Statement::new(
 pub(all) struct Policy {
   digest_algorithm : String
   expected_digest : String
+  artifact_digest : String
   source_uri : String
   builder_id : String
   build_type : String
@@ -104,6 +105,7 @@ pub fn Policy::new(
   {
     digest_algorithm,
     expected_digest,
+    artifact_digest: "",
     source_uri,
     builder_id,
     build_type: "",
@@ -120,6 +122,7 @@ pub fn Policy::with_subject(self : Policy, subject_name : String) -> Policy {
   {
     digest_algorithm: self.digest_algorithm,
     expected_digest: self.expected_digest,
+    artifact_digest: self.artifact_digest,
     source_uri: self.source_uri,
     builder_id: self.builder_id,
     build_type: self.build_type,
@@ -139,6 +142,28 @@ pub fn Policy::with_expected_digest(
   {
     digest_algorithm: self.digest_algorithm,
     expected_digest,
+    artifact_digest: self.artifact_digest,
+    source_uri: self.source_uri,
+    builder_id: self.builder_id,
+    build_type: self.build_type,
+    trusted_key_ids: self.trusted_key_ids,
+    subject_name: self.subject_name,
+    min_valid_signatures: self.min_valid_signatures,
+  }
+}
+
+///|
+/// Return a copy of this policy carrying the SHA-256 measured from a local
+/// artifact. Verification keeps `expected_digest` as a separate policy
+/// constraint and compares this runtime measurement to signed provenance.
+pub fn Policy::with_artifact_digest(
+  self : Policy,
+  artifact_digest : String,
+) -> Policy {
+  {
+    digest_algorithm: self.digest_algorithm,
+    expected_digest: self.expected_digest,
+    artifact_digest,
     source_uri: self.source_uri,
     builder_id: self.builder_id,
     build_type: self.build_type,
@@ -155,6 +180,7 @@ pub fn Policy::with_build_type(self : Policy, build_type : String) -> Policy {
   {
     digest_algorithm: self.digest_algorithm,
     expected_digest: self.expected_digest,
+    artifact_digest: self.artifact_digest,
     source_uri: self.source_uri,
     builder_id: self.builder_id,
     build_type,
@@ -174,6 +200,7 @@ pub fn Policy::with_min_valid_signatures(
   {
     digest_algorithm: self.digest_algorithm,
     expected_digest: self.expected_digest,
+    artifact_digest: self.artifact_digest,
     source_uri: self.source_uri,
     builder_id: self.builder_id,
     build_type: self.build_type,

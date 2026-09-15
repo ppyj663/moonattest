@@ -166,6 +166,16 @@ test "reject an artifact digest mismatch" {
 }
 
 ///|
+test "reject a local artifact that differs from signed provenance" {
+  let policy = valid_policy().with_artifact_digest(
+    "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34",
+  )
+  let report = verify_envelope(valid_envelope(), policy, valid_keys())
+  assert_eq(report.ok, false)
+  assert_eq(report_has_code(report, "ARTIFACT_DIGEST_MISMATCH"), true)
+}
+
+///|
 test "reject a malformed SHA-256 policy digest" {
   let policy = { ..valid_policy(), expected_digest: "abc123", }
   let report = verify_envelope(valid_envelope(), policy, valid_keys())

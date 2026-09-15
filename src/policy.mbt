@@ -73,6 +73,18 @@ fn check_policy(
       )
     }
   }
+  if policy.artifact_digest != "" {
+    if !is_valid_sha256_digest(policy.artifact_digest) {
+      add_finding(
+        findings, "INVALID_ARTIFACT_DIGEST", "local artifact SHA-256 digest is not 32-byte hexadecimal",
+      )
+    } else if subject.digest_algorithm != "sha256" ||
+      subject.digest.to_lower() != policy.artifact_digest.to_lower() {
+      add_finding(
+        findings, "ARTIFACT_DIGEST_MISMATCH", "local artifact digest does not match signed subject",
+      )
+    }
+  }
   if policy.source_uri != "" && provenance.source_uri != policy.source_uri {
     add_finding(
       findings, "SOURCE_MISMATCH", "provenance source does not match policy",

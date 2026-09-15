@@ -54,3 +54,13 @@ test "replace a policy digest without changing other constraints" {
   assert_eq(updated.subject_name, policy.subject_name)
   assert_eq(updated.min_valid_signatures, policy.min_valid_signatures)
 }
+
+///|
+test "store a measured artifact digest separately from the policy digest" {
+  let policy = valid_policy()
+  let measured = "cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34"
+  let updated = policy.with_artifact_digest(measured)
+  assert_eq(updated.artifact_digest, measured)
+  assert_eq(updated.expected_digest, policy.expected_digest)
+  assert_eq(updated.source_uri, policy.source_uri)
+}

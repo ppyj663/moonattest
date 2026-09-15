@@ -252,7 +252,7 @@ fn run_audit(args : Array[String], index : Int) -> Int {
       None => return 2
     }
     let bound_policy = @attest.PolicyDocument::new(
-      policy_document.policy.with_expected_digest(artifact_digest),
+      policy_document.policy.with_artifact_digest(artifact_digest),
       policy_document.trusted_keys,
     )
     entries.push(@attest.BatchEntry::new(entry.name, envelope, bound_policy))
